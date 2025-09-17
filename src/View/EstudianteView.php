@@ -4,12 +4,7 @@ class EstudianteView {
     private $message = '';
     private $messageType = '';
 
-     
-    public function __construct(Estudiante $estudiante) {
-        $this->estudiantemodel = $estudiante;
-    }
-
-    public function setModel(Estudiante $model) {
+    public function __construct(EstudianteModel $model) {
         $this->estudiantemodel = $model;
     }
 
@@ -23,75 +18,79 @@ class EstudianteView {
         $this->messageType = 'error';
     }
 
-    public function render() {
-        if (!$this->estudiantemodel) {
-            echo "<p style='color: red;'>Error: No se ha configurado el modelo</p>";
-            return;
+  public function render($estudiantes = null) {
+        if ($estudiantes === null) {
+            $estudiantes = $this->estudiantemodel->obtenerTodos();
         }
+        $usuariosLibres = $this->estudiantemodel->obtenerUsuariosLibres();
 
-        $data = $this->estudiantemodel->mostrar();
-        
-        echo "<!DOCTYPE html>";
-        echo "<html><head><title>Gestión de Estudiantes</title>";
-        echo "<style>";
-        echo ".container { max-width: 600px; margin: 0 auto; padding: 20px; font-family: Arial, sans-serif; }";
-        echo ".success { color: green; background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".form-group { margin: 10px 0; }";
-        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: bold; }";
-        echo ".form-group input, .form-group select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }";
-        echo ".btn { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }";
-        echo ".btn:hover { background: #005a87; }";
-        echo ".student-info { background: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0; }";
-        echo "</style></head><body>";
-        
-        echo "<div class='container'>";
-        echo "<h1>Gestión de Estudiantes - Patrón MVC</h1>";
-
-        // Mostrar mensajes
+        echo "<!DOCTYPE html><html><head><title>Estudiantes</title></head><body>";
+        echo "<h2>Estudiantes</h2>";
         if ($this->message) {
             $class = $this->messageType === 'success' ? 'success' : 'error';
             echo "<div class='$class'>{$this->message}</div>";
         }
-
-        // Mostrar información del estudiante
-        echo "<div class='student-info'>";
-        echo "<h2>Información del Estudiante</h2>";
-        echo "<p><strong>Código:</strong> {$data['codigo']}</p>";
-        echo "<p><strong>Nombres:</strong> {$data['nombres']}</p>";
-        echo "<p><strong>Apellidos:</strong> {$data['apellidos']}</p>";
-        echo "<p><strong>Estado:</strong> {$data['estado']}</p>";
-        echo "<p><strong>Creado en:</strong> {$data['creado_en']}</p>";
-        echo "<p><strong>Actualizado en:</strong> {$data['actualizado_en']}</p>";
-        echo "</div>";
-
-        // Formulario de actualización
-        echo "<h3>Actualizar Estudiante</h3>";
-        echo "<form method='post'>";
-        echo "<input type='hidden' name='evento' value='actualizar'>";
-        
-        echo "<div class='form-group'>";
-        echo "<label for='nombres'>Nombres:</label>";
-        echo "<input type='text' id='nombres' name='nombres' value='{$data['nombres']}' required>";
-        echo "</div>";
-        
-        echo "<div class='form-group'>";
-        echo "<label for='apellidos'>Apellidos:</label>";
-        echo "<input type='text' id='apellidos' name='apellidos' value='{$data['apellidos']}' required>";
-        echo "</div>";
-        
-        echo "<div class='form-group'>";
-        echo "<label for='estado'>Estado:</label>";
-        echo "<select id='estado' name='estado'>";
-        echo "<option value='activo'" . ($data['estado'] === 'activo' ? ' selected' : '') . ">Activo</option>";
-        echo "<option value='inactivo'" . ($data['estado'] === 'inactivo' ? ' selected' : '') . ">Inactivo</option>";
-        echo "</select>";
-        echo "</div>";
-        
-        echo "<button type='submit' class='btn'>Actualizar Estudiante</button>";
-        echo "</form>";
-        
-        echo "</div>";
-        echo "</body></html>";
+        // Formulario de creación
+        echo "<form method='POST'>
+                <input type='hidden' name='evento' value='crear'>
+                <input type='text' name='codigo' placeholder='Código' required>
+                <input type='text' name='ci' placeholder='CI' required>
+                <input type='text' name='nombres' placeholder='Nombres' required>
+                <input type='text' name='apellidos' placeholder='Apellidos' required>
+                <select name='estado'>
+                    <option value='activo'>Activo</option>
+                    <option value='inactivo'>Inactivo</option>
+                </select>
+                <select name='genero' required>
+                    <option value=''>-- Selecciona género --</option>
+                    <option value='M'>Masculino</option>
+                    <option value='F'>Femenino</option>
+                </select>
+                <select name='usuario_id' required>
+                    <option value=''>-- Selecciona usuario --</option>";
+        foreach ($usuariosLibres as $u) {
+            echo "<option value='{$u['id']}'>{$u['nombre']}</option>";
+        }
+        echo "</select>
+                <button type='submit'>Crear</button>
+              </form>";
+        // Tabla de estudiantes
+        echo "<table border='1' cellpadding='5'><tr><th>Código</th><th>CI</th><th>Nombres</th><th>Apellidos</th><th>Estado</th><th>Género</th><th>Usuario</th><th>Acciones</th></tr>";
+        foreach ($estudiantes as $e) {
+            echo "<tr>
+                    <form method='POST'>
+                    <td><input type='text' name='codigo' value='{$e['codigo']}' readonly></td>
+                    <td><input type='text' name='ci' value='{$e['ci']}'></td>
+                    <td><input type='text' name='nombres' value='{$e['nombres']}'></td>
+                    <td><input type='text' name='apellidos' value='{$e['apellidos']}'></td>
+                    <td>
+                        <select name='estado'>
+                            <option value='activo'" . ($e['estado'] === 'activo' ? ' selected' : '') . ">Activo</option>
+                            <option value='inactivo'" . ($e['estado'] === 'inactivo' ? ' selected' : '') . ">Inactivo</option>
+                        </select>
+                    </td>
+                    <td><select name='genero' required>
+                        <option value='m'" . ($e['genero'] === 'm' ? ' selected' : '') . ">Masculino</option>
+                        <option value='f'" . ($e['genero'] === 'f' ? ' selected' : '') . ">Femenino</option>
+                    </select></td>
+                    <td><select name='usuario_id' required>";
+            // Mostrar el usuario actual
+            echo "<option value='{$e['usuario_id']}' selected>Usuario actual ({$e['usuario_id']})</option>";
+            // Mostrar los usuarios libres
+            foreach ($usuariosLibres as $u) {
+                if ($u['id'] != $e['usuario_id']) {
+                    echo "<option value='{$u['id']}'>{$u['nombre']}</option>";
+                }
+            }
+            echo "</select></td>";
+            echo "<td>
+                        <input type='hidden' name='evento' value='actualizar'>
+                        <button type='submit'>Actualizar</button>
+                        <button type='submit' name='evento' value='eliminar' onclick='return confirm(\"¿Eliminar?\")'>Eliminar</button>
+                    </td>
+                    </form>
+                  </tr>";
+        }
+        echo "</table></body></html>";
     }
 }

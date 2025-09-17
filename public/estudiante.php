@@ -1,12 +1,13 @@
 <?php
 // Incluir las clases necesarias
-require_once __DIR__ . '/../src/Model/Estudiante.php';
+require_once __DIR__ . '/../src/Model/EstudianteModel.php';
 require_once __DIR__ . '/../src/View/EstudianteView.php';
 require_once __DIR__ . '/../src/Controller/EstudianteController.php';
+require_once __DIR__ . '/../src/Conexion/Conexion.php';
 
 
 $db =Conexion::getInstance();
-$estudianteModel= new Estudiante($db);
+$estudianteModel= new EstudianteModel($db);
 $view = new EstudianteView($estudianteModel);
-$controller = new EstudianteController($estudiante, $view);
+$controller = new EstudianteController($estudianteModel, $view);
 $controller->handleRequest();

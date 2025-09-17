@@ -28,7 +28,25 @@ class GrupoController
                     $this->verClases();
                     break;
                 case 'Usuarios':
-                     $this->Usuarios();    
+                     $this->Usuarios();
+                case 'InscripcionClicked':
+                    // Lógica para manejar la inscripción
+                    $this->showInscripcion();
+                    break;
+                case 'ProfesoresClicked':
+                    // Lógica para manejar la inscripción
+                    $this->showProfesores();
+                    break;
+                case 'MateriasClicked':
+                    // Lógica para manejar la inscripción
+                    $this->showMaterias();
+                    break;
+                case 'UsuariosClicked':
+                    $this->showUsuarios();
+                    break;    
+                case  'EstudiantesClicked':   
+                    $this->showEstudiantes();
+                    break;
                 default:
                     $this->view->showErrorMessage("Evento no soportado");
                     break;
@@ -62,4 +80,26 @@ class GrupoController
 
     }
 
+    public function showInscripcion() {
+        header('Location: inscripcion.php');
+        exit();
+    }  
+    public function showUsuarios() {
+        header('Location: usuarios.php');
+        exit();
+    }
+    public function showProfesores() {
+        header('Location: profesores.php');
+        exit();
+    }
+    public function showMaterias() {
+         header('Location: materia.php');
+        exit();
+    }
+
+
+    public function showEstudiantes() {
+         header('Location: estudiante.php');
+        exit();
+    }
 }

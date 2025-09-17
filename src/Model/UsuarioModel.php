@@ -15,6 +15,34 @@ class UsuarioModel {
     }
 
     // Getters
+
+    public function obtenerTodos() {
+        $sql = "SELECT id, nombre, creado_en, actualizado_en FROM usuario ORDER BY nombre ASC";
+        return $this->db->fetchAll($sql);
+    }
+
+    // Crear usuario
+    public function crear($nombre, $contrasena) {
+        $sql = "INSERT INTO usuario (nombre, contrasena, creado_en, actualizado_en) VALUES (?, ?, NOW(), NOW())";
+        return $this->db->query($sql, [$nombre, $contrasena]);
+    }
+
+    // Editar usuario
+    public function editar($id, $nombre, $contrasena = null) {
+        if ($contrasena) {
+            $sql = "UPDATE usuario SET nombre = ?, contrasena = ?, actualizado_en = NOW() WHERE id = ?";
+            return $this->db->query($sql, [$nombre, $contrasena, $id]);
+        } else {
+            $sql = "UPDATE usuario SET nombre = ?, actualizado_en = NOW() WHERE id = ?";
+            return $this->db->query($sql, [$nombre, $id]);
+        }
+    }
+
+    // Eliminar usuario
+    public function eliminar($id) {
+        $sql = "DELETE FROM usuario WHERE id = ?";
+        return $this->db->query($sql, [$id]);
+    }
    
     // Método para validar login con consulta a la base de datos
     public function validarLogin($nombre, $contrasena) {

@@ -172,23 +172,23 @@ class GrupoView
             echo "<p>{$grupo['mensaje']}</p>";
             echo "<div class='actions'>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
-            echo "<input type='hidden' name='evento' value='Materias'>";
+            echo "<input type='hidden' name='evento' value='MateriasClicked'>";
             echo "<button type='submit' class='btn btn-success'>📚 Materias</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
-            echo "<input type='hidden' name='evento' value='Estudiantes'>";
+            echo "<input type='hidden' name='evento' value='EstudiantesClicked'>";
             echo "<button type='submit' class='btn btn-success'>📚 Estudiantes</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
-            echo "<input type='hidden' name='evento' value='Inscripcion'>";
+            echo "<input type='hidden' name='evento' value='InscripcionClicked'>";
             echo "<button type='submit' class='btn btn-success'>📚 Inscripciones</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
-            echo "<input type='hidden' name='evento' value='Inscripcion'>";
+            echo "<input type='hidden' name='evento' value='UsuariosClicked'>";
             echo "<button type='submit' class='btn btn-success'>📚 Usuarios</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
-            echo "<input type='hidden' name='evento' value='Profesores'>";
+            echo "<input type='hidden' name='evento' value='ProfesoresClicked'>";
             echo "<button type='submit' class='btn btn-success'>📚 Profesores</button>";
             echo "</form>";
 
