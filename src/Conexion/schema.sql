@@ -41,7 +41,8 @@ nombre VARCHAR(100) NOT NULL
 CREATE TABLE grupo (
 id SERIAL PRIMARY KEY,
 nombre VARCHAR(50) NOT NULL,
-capacidad INTEGER DEFAULT 30,
+capacidad_maxima INTEGER DEFAULT 100,
+capacidad_actual INTEGER DEFAULT 0,
 materia_id INTEGER NOT NULL,
 profesor_codigo VARCHAR(20) NOT NULL,
 FOREIGN KEY (materia_id) REFERENCES materia(id),
@@ -72,6 +73,7 @@ FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
 CREATE TABLE inscribe (
 estudiante_codigo VARCHAR(20) NOT NULL,
 grupo_id INTEGER NOT NULL,
+fecha_inscripcion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (estudiante_codigo, grupo_id),
 FOREIGN KEY (estudiante_codigo) REFERENCES estudiante(codigo) ON DELETE CASCADE ,
 FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
@@ -113,10 +115,10 @@ INSERT INTO materia (nombre) VALUES
 ('Física I'),
 ('Química General');
 
-INSERT INTO grupo (nombre, capacidad, materia_id, profesor_codigo) VALUES 
-('MAT-A', 30, 1, 'PROF001'),
-('PROG-B', 25, 2, 'PROF001'),
-('BD-C', 20, 3, 'PROF001');
+INSERT INTO grupo (nombre, capacidad_maxima, capacidad_actual, materia_id, profesor_codigo) VALUES 
+('MAT-A', 30, 0, 1, 'PROF001'),
+('PROG-B', 25, 0, 2, 'PROF001'),
+('BD-C', 20, 0, 3, 'PROF001');
 
 INSERT INTO horario (dia, hora_inicio, hora_final, grupo_id) VALUES 
 ('Lunes', '08:00', '10:00', 1),
@@ -130,13 +132,13 @@ INSERT INTO clases (dia, qr, grupo_id) VALUES
 ('2025-09-15', 'QR456DEF', 2),
 ('2025-09-15', 'QR789GHI', 3);
 
-INSERT INTO inscribe (estudiante_codigo, grupo_id) VALUES 
-('EST001', 1),
-('EST001', 2),
-('EST002', 1),
-('EST002', 3),
-('EST003', 2),
-('EST003', 3);
+INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) VALUES 
+('EST001', 1, CURRENT_TIMESTAMP),
+('EST001', 2, CURRENT_TIMESTAMP),
+('EST002', 1, CURRENT_TIMESTAMP),
+('EST002', 3, CURRENT_TIMESTAMP),
+('EST003', 2, CURRENT_TIMESTAMP),
+('EST003', 3, CURRENT_TIMESTAMP);
 
 INSERT INTO asistencia (fecha, hora_inicio, hora_fin, tipo, estudiante_codigo, clases_id) VALUES 
 ('2025-09-15', '08:05', '09:55', 'presente', 'EST001', 1),

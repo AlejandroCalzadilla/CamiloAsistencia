@@ -31,7 +31,7 @@ class GrupoView
         }
 
         $grupo = $this->model->mostrar();
-
+        
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Grupos - Sistema de Asistencia</title>";
         echo "<style>";
@@ -76,6 +76,19 @@ class GrupoView
         echo ".dropdown-item:hover { background: #f8f9fa; color: #007bff; }";
         echo ".dropdown-item i { margin-right: 8px; width: 16px; }";
         echo ".dropdown-divider { border-top: 1px solid #dee2e6; margin: 8px 0; }";
+        
+        // Estilos adicionales para el CRUD de admin
+        echo ".admin-section { margin: 20px 0; }";
+        echo ".form-group { margin-bottom: 15px; }";
+        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }";
+        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }";
+        echo ".form-control:focus { border-color: #007bff; outline: none; box-shadow: 0 0 0 2px rgba(0,123,255,0.25); }";
+        echo ".btn-sm { padding: 5px 10px; font-size: 0.875em; }";
+        echo ".table-responsive { overflow-x: auto; }";
+        echo ".search-box { margin: 15px 0; }";
+        echo ".search-box input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 300px; }";
+        echo ".loading { text-align: center; padding: 20px; color: #6c757d; }";
+        echo ".empty-state { text-align: center; padding: 40px; color: #6c757d; background: #f8f9fa; border-radius: 8px; }";
         echo "</style>";
 
         // JavaScript para el dropdown
@@ -167,32 +180,79 @@ class GrupoView
         echo "<div class='groups-section'>";
 
         if ($grupo['rol'] === 'admin') {
-            echo "<div class='no-groups'>";
-            echo "<h3>👑 Panel de Administrador</h3>";
+            echo "<div class='admin-section'>";
+            echo "<h3>👑 Panel de Administrador - Gestión de Grupos</h3>";
             echo "<p>{$grupo['mensaje']}</p>";
-            echo "<div class='actions'>";
+            
+            // Botón para crear nuevo grupo
+            echo "<div class='actions' style='margin: 20px 0;'>";
+            echo "<button onclick='mostrarFormularioCrear()' class='btn btn-success'>➕ Crear Nuevo Grupo</button>";
+          
+            echo "</div>";
+
+            // Formulario para crear/editar grupo
+            echo "<div id='formulario-grupo' style='display: none; background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0;'>";
+            echo "<h4 id='titulo-formulario'>Crear Nuevo Grupo</h4>";
+            echo "<form id='form-grupo' onsubmit='return procesarFormulario(event)'>";
+            echo "<input type='hidden' id='grupo-id' name='id'>";
+            echo "<div style='margin-bottom: 15px;'>";
+            echo "<label>Nombre del Grupo:</label>";
+            echo "<input type='text' id='nombre' name='nombre' required style='width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;'>";
+            echo "</div>";
+            echo "<div style='margin-bottom: 15px;'>";
+            echo "<label>Materia:</label>";
+            echo "<select id='materia_id' name='materia_id' required style='width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;'>";
+            echo "<option value=''>Selecciona una materia</option>";
+            echo "</select>";
+            echo "</div>";
+            echo "<div style='margin-bottom: 15px;'>";
+            echo "<label>Profesor:</label>";
+            echo "<select id='profesor_codigo' name='profesor_codigo' required style='width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;'>";
+            echo "<option value=''>Selecciona un profesor</option>";
+            echo "</select>";
+            echo "</div>";
+            echo "<div style='margin-bottom: 15px;'>";
+            echo "<label>Capacidad Máxima:</label>";
+            echo "<input type='number' id='capacidad_maxima' name='capacidad_maxima' value='100' min='1' style='width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;'>";
+            echo "</div>";
+            echo "<div>";
+            echo "<button type='submit' class='btn btn-success'>💾 Guardar</button>";
+            echo "<button type='button' onclick='cancelarFormulario()' class='btn btn-secondary'>❌ Cancelar</button>";
+            echo "</div>";
+            echo "</form>";
+            echo "</div>";
+
+            // Lista de todos los grupos
+            echo "<div id='lista-grupos'>";
+            echo "<h4>📚 Todos los Grupos del Sistema</h4>";
+            echo "<div id='grupos-container'>";
+            echo "<p style='text-align: center; color: #6c757d;'>Cargando grupos...</p>";
+            echo "</div>";
+            echo "</div>";
+
+            // Botones de navegación a otras secciones
+            echo "<div class='actions' style='margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 20px;'>";
+            echo "<h4>🧩 Otras Secciones del Sistema</h4>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='MateriasClicked'>";
-            echo "<button type='submit' class='btn btn-success'>📚 Materias</button>";
+            echo "<button type='submit' class='btn btn-warning'>📚 Materias</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='EstudiantesClicked'>";
-            echo "<button type='submit' class='btn btn-success'>📚 Estudiantes</button>";
+            echo "<button type='submit' class='btn btn-warning'>� Estudiantes</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='InscripcionClicked'>";
-            echo "<button type='submit' class='btn btn-success'>📚 Inscripciones</button>";
+            echo "<button type='submit' class='btn btn-warning'>� Inscripciones</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='UsuariosClicked'>";
-            echo "<button type='submit' class='btn btn-success'>📚 Usuarios</button>";
+            echo "<button type='submit' class='btn btn-warning'>� Usuarios</button>";
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='ProfesoresClicked'>";
-            echo "<button type='submit' class='btn btn-success'>📚 Profesores</button>";
+            echo "<button type='submit' class='btn btn-warning'>�‍🏫 Profesores</button>";
             echo "</form>";
-
-
             echo "</div>";
             echo "</div>";
 
@@ -229,20 +289,12 @@ class GrupoView
                 echo "<div style='margin-top: 15px;'>";
 
                 if ($grupo['rol'] === 'profesor') {
-                    // Botones para profesores
-                    echo "<a href='ver-grupo.php?id={$grupoItem['id']}' class='btn'>👁️ Ver Detalles</a>";
-                    echo "<a href='lista-asistencia.php?grupo_id={$grupoItem['id']}' class='btn btn-success'>📋 Tomar Asistencia</a>";
-
-                    // Formulario para ir a clases
+                  
                     echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
                     echo "<input type='hidden' name='evento' value='ver_clases'>";
                     echo "<input type='hidden' name='grupo_id' value='{$grupoItem['id']}'>";
                     echo "<button type='submit' class='btn btn-warning'>📚 Ver Clases</button>";
-                    echo "</form>";
-
-                    echo "<a href='editar-grupo.php?id={$grupoItem['id']}' class='btn btn-warning'>✏️ Editar</a>";
-                    echo "<a href='eliminar-grupo.php?id={$grupoItem['id']}' class='btn btn-danger' onclick='return confirm(\"¿Estás seguro de eliminar este grupo?\")'>🗑️ Eliminar</a>";
-
+                   
                 } elseif ($grupo['rol'] === 'estudiante') {
                     // Botones para estudiantes (solo lectura)
 
@@ -277,6 +329,274 @@ class GrupoView
         echo "</div>";
 
         echo "</div>";
+
+        // JavaScript para funcionalidades CRUD
+        if ($grupo['rol'] === 'admin') {
+            echo "<script>";
+            echo "
+            // Variables globales
+            let profesores = [];
+            let materias = [];
+            let modoEdicion = false;
+            
+            // Cargar datos iniciales
+            document.addEventListener('DOMContentLoaded', function() {
+                cargarDatosFormulario();
+                cargarTodosLosGrupos();
+            });
+            
+            // Función para cargar profesores y materias
+            function cargarDatosFormulario() {
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'evento=obtener_datos_formulario'
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.text(); // Primero obtenemos como texto
+                })
+                .then(text => {
+                    console.log('Response text:', text);
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.success) {
+                            profesores = data.profesores;
+                            materias = data.materias;
+                            llenarSelectores();
+                        } else {
+                            console.error('Error en respuesta:', data.message);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                        console.error('Response was:', text);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en fetch:', error);
+                });
+            }
+            
+            // Llenar los selectores de materia y profesor
+            function llenarSelectores() {
+                const selectMateria = document.getElementById('materia_id');
+                const selectProfesor = document.getElementById('profesor_codigo');
+                
+                // Limpiar selectores
+                selectMateria.innerHTML = '<option value=\"\">Selecciona una materia</option>';
+                selectProfesor.innerHTML = '<option value=\"\">Selecciona un profesor</option>';
+                
+                // Llenar materias
+                materias.forEach(materia => {
+                    const option = document.createElement('option');
+                    option.value = materia.id;
+                    option.textContent = materia.nombre;
+                    selectMateria.appendChild(option);
+                });
+                
+                // Llenar profesores
+                profesores.forEach(profesor => {
+                    const option = document.createElement('option');
+                    option.value = profesor.codigo;
+                    option.textContent = profesor.nombres + ' ' + profesor.apellidos;
+                    selectProfesor.appendChild(option);
+                });
+            }
+            
+            // Mostrar formulario para crear
+            function mostrarFormularioCrear() {
+                document.getElementById('titulo-formulario').textContent = 'Crear Nuevo Grupo';
+                document.getElementById('formulario-grupo').style.display = 'block';
+                document.getElementById('form-grupo').reset();
+                document.getElementById('grupo-id').value = '';
+                modoEdicion = false;
+            }
+            
+            // Mostrar formulario para editar
+            function editarGrupo(id) {
+                document.getElementById('titulo-formulario').textContent = 'Editar Grupo';
+                document.getElementById('formulario-grupo').style.display = 'block';
+                modoEdicion = true;
+                
+                // Cargar datos del grupo
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'evento=obtener_grupo&id=' + id
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const grupo = data.data;
+                        document.getElementById('grupo-id').value = grupo.id;
+                        document.getElementById('nombre').value = grupo.nombre;
+                        document.getElementById('materia_id').value = grupo.materia_id;
+                        document.getElementById('profesor_codigo').value = grupo.profesor_codigo;
+                        document.getElementById('capacidad_maxima').value = grupo.capacidad_maxima;
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+            
+            // Cancelar formulario
+            function cancelarFormulario() {
+                document.getElementById('formulario-grupo').style.display = 'none';
+                document.getElementById('form-grupo').reset();
+                modoEdicion = false;
+            }
+            
+            // Procesar formulario (crear o actualizar)
+            function procesarFormulario(event) {
+                event.preventDefault();
+                
+                const formData = new FormData(document.getElementById('form-grupo'));
+                const evento = modoEdicion ? 'actualizar_grupo' : 'crear_grupo';
+                formData.append('evento', evento);
+                
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        cancelarFormulario();
+                        cargarTodosLosGrupos();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al procesar la solicitud');
+                });
+                
+                return false;
+            }
+            
+            // Cargar todos los grupos
+            function cargarTodosLosGrupos() {
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'evento=listar_todos'
+                })
+                .then(response => {
+                    console.log('Response status for listar_todos:', response.status);
+                    return response.text(); // Primero obtenemos como texto
+                })
+                .then(text => {
+                    console.log('Response text for listar_todos:', text);
+                    try {
+                        const data = JSON.parse(text);
+                        if (data.success) {
+                            mostrarGrupos(data.data);
+                        } else {
+                            console.error('Error en respuesta:', data.message);
+                            document.getElementById('grupos-container').innerHTML = '<p style=\"color: red;\">Error: ' + data.message + '</p>';
+                        }
+                    } catch (e) {
+                        console.error('Error parsing JSON:', e);
+                        console.error('Response was:', text);
+                        document.getElementById('grupos-container').innerHTML = '<p style=\"color: red;\">Error al procesar respuesta del servidor</p>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error en fetch:', error);
+                    document.getElementById('grupos-container').innerHTML = '<p style=\"color: red;\">Error de conexión</p>';
+                });
+            }
+            
+            // Mostrar lista de grupos
+            function mostrarGrupos(grupos) {
+                const container = document.getElementById('grupos-container');
+                
+                if (grupos.length === 0) {
+                    container.innerHTML = '<p style=\"text-align: center; color: #6c757d;\">No hay grupos registrados</p>';
+                    return;
+                }
+                
+                let html = '';
+                grupos.forEach(grupo => {
+                    html += '<div class=\"group-card\">';
+                    html += '<h4>📖 ' + grupo.grupo_nombre + '</h4>';
+                    html += '<div class=\"group-meta\">';
+                    html += '<p><strong>Materia:</strong> ' + grupo.materia_nombre + '</p>';
+                    html += '<p><strong>Profesor:</strong> ' + grupo.profesor_nombres + ' ' + grupo.profesor_apellidos + '</p>';
+                    html += '<p><strong>Capacidad:</strong> ' + grupo.capacidad_maxima + ' estudiantes</p>';
+                    html += '<p><strong>Inscritos:</strong> ' + grupo.estudiantes_inscritos + ' estudiantes</p>';
+                    html += '</div>';
+                    html += '<div style=\"margin-top: 15px;\">';
+                    html += '<button onclick=\"editarGrupo(' + grupo.id + ')\" class=\"btn btn-warning\">✏️ Editar</button>';
+                    html += '<button onclick=\"eliminarGrupo(' + grupo.id + ')\" class=\"btn btn-danger\">🗑️ Eliminar</button>';
+                    html += '<button onclick=\"verClases(' + grupo.id + ')\" class=\"btn\">📚 Ver Clases</button>';
+                    html += '</div>';
+                    html += '</div>';
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            // Eliminar grupo
+            function eliminarGrupo(id) {
+                if (!confirm('¿Estás seguro de que deseas eliminar este grupo?')) {
+                    return;
+                }
+                
+                fetch(window.location.pathname, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'evento=eliminar_grupo&id=' + id
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        cargarTodosLosGrupos();
+                    } else {
+                        alert('Error: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Error al eliminar el grupo');
+                });
+            }
+            
+            // Ver clases de un grupo
+            function verClases(grupoId) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = window.location.pathname;
+                
+                const input1 = document.createElement('input');
+                input1.type = 'hidden';
+                input1.name = 'evento';
+                input1.value = 'ver_clases';
+                
+                const input2 = document.createElement('input');
+                input2.type = 'hidden';
+                input2.name = 'grupo_id';
+                input2.value = grupoId;
+                
+                form.appendChild(input1);
+                form.appendChild(input2);
+                document.body.appendChild(form);
+                form.submit();
+            }
+            ";
+            echo "</script>";
+        }
+
         echo "</body></html>";
     }
 
