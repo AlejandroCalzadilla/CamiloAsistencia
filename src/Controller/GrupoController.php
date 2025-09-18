@@ -47,8 +47,11 @@ class GrupoController
                 case 'listar_todos':
                     $this->listarTodos();
                     exit(); // Terminar aquí para AJAX
+                case 'eliminar_inscripcion':
+                    $this->eliminarInscripcion();
+                    exit(); // Terminar aquí para AJAX
                 case 'Usuarios':
-                     $this->Usuarios();
+                    $this->Usuarios();
                 case 'InscripcionClicked':
                     // Lógica para manejar la inscripción
                     $this->showInscripcion();
@@ -63,8 +66,8 @@ class GrupoController
                     break;
                 case 'UsuariosClicked':
                     $this->showUsuarios();
-                    break;    
-                case  'EstudiantesClicked':   
+                    break;
+                case 'EstudiantesClicked':
                     $this->showEstudiantes();
                     break;
                 default:
@@ -74,57 +77,71 @@ class GrupoController
         }
 
         // Mostrar la vista de login solo si no es una petición AJAX
-        if (!isset($_POST['evento']) || !in_array($_POST['evento'], [
-            'crear_grupo', 'actualizar_grupo', 'eliminar_grupo', 'obtener_grupo',
-            'obtener_datos_formulario', 'listar_todos', 'buscar_grupos'
-        ])) {
+        if (
+            !isset($_POST['evento']) || !in_array($_POST['evento'], [
+                'crear_grupo',
+                'actualizar_grupo',
+                'eliminar_grupo',
+                'obtener_grupo',
+                'obtener_datos_formulario',
+                'listar_todos',
+                'buscar_grupos',
+                'eliminar_inscripcion'
+            ])
+        ) {
             $this->view->render();
         }
     }
 
 
-   public function verClases()
+    public function verClases()
     {
         // Verificar que se recibió el grupo_id
         if (isset($_POST['grupo_id'])) {
             $grupo_id = intval($_POST['grupo_id']);
-            
+
             // Opción 1: Redirigir con GET
             header("Location: clase.php?grupo_id={$grupo_id}");
             exit();
-            
+
         } else {
             $this->view->showErrorMessage("No se especificó el grupo");
         }
     }
 
 
-    public function Usuarios(){
-   
-        header("Location: usuarios.php");   
+    public function Usuarios()
+    {
+
+        header("Location: usuarios.php");
 
     }
 
-    public function showInscripcion() {
+    public function showInscripcion()
+    {
         header('Location: inscripcion.php');
         exit();
-    }  
-    public function showUsuarios() {
+    }
+    public function showUsuarios()
+    {
         header('Location: usuarios.php');
         exit();
     }
-    public function showProfesores() {
+    public function showProfesores()
+    {
         header('Location: profesores.php');
         exit();
     }
-    public function showMaterias() {
-         header('Location: materia.php');
+    public function showMaterias()
+    {
+        header('Location: materia.php');
         exit();
     }
 
 
-    public function showEstudiantes() {
-         header('Location: estudiante.php');
+    public function showEstudiantes()
+    {
+        header('Location: estudiante.php');
         exit();
     }
 
@@ -132,7 +149,7 @@ class GrupoController
     public function crearGrupo()
     {
         header('Content-Type: application/json');
-        
+
         if (!isset($_POST['nombre']) || !isset($_POST['materia_id']) || !isset($_POST['profesor_codigo'])) {
             echo json_encode([
                 'success' => false,
@@ -157,9 +174,9 @@ class GrupoController
             ]);
             return;
         }
-        
+
         $resultado = $this->model->crear($data);
-        
+
         // Si el grupo se creó exitosamente y hay inscripciones que crear
         if ($resultado['success'] && isset($_POST['inscripciones']) && !empty($_POST['inscripciones'])) {
             $grupo_id = $resultado['id'];
@@ -169,7 +186,7 @@ class GrupoController
                 $this->inscripcionModel->crear($estudiante_codigo, $grupo_id);
             }
         }
-        
+
         echo json_encode($resultado);
         exit();
     }
@@ -178,7 +195,7 @@ class GrupoController
     public function actualizarGrupo()
     {
         header('Content-Type: application/json');
-        
+
         if (!isset($_POST['id']) || !isset($_POST['nombre']) || !isset($_POST['materia_id']) || !isset($_POST['profesor_codigo'])) {
             echo json_encode([
                 'success' => false,
@@ -207,21 +224,17 @@ class GrupoController
         }
 
         $resultado = $this->model->actualizar($id, $data);
-        
+
         // Si el grupo se actualizó exitosamente y hay nuevas inscripciones que crear
         if ($resultado['success'] && isset($_POST['nuevas_inscripciones']) && !empty($_POST['nuevas_inscripciones'])) {
-            require_once __DIR__ . '/../Model/InscripcionModel.php';
-            require_once __DIR__ . '/../Conexion/Conexion.php';
-            $conexion = Conexion::getInstance();
-            $inscripcionModel = new InscripcionModel($conexion);
-            
+
             $nuevas_inscripciones = $_POST['nuevas_inscripciones']; // Array de códigos de estudiantes
-            
+
             foreach ($nuevas_inscripciones as $estudiante_codigo) {
-                $inscripcionModel->crear($estudiante_codigo, $id);
+                $this->inscripcionModel->crear($estudiante_codigo, $id);
             }
         }
-        
+
         echo json_encode($resultado);
         exit();
     }
@@ -230,7 +243,7 @@ class GrupoController
     public function eliminarGrupo()
     {
         header('Content-Type: application/json');
-        
+
         if (!isset($_POST['id'])) {
             echo json_encode([
                 'success' => false,
@@ -249,7 +262,7 @@ class GrupoController
     public function obtenerGrupo()
     {
         header('Content-Type: application/json');
-        
+
         if (!isset($_POST['id'])) {
             echo json_encode([
                 'success' => false,
@@ -260,11 +273,19 @@ class GrupoController
 
         $id = intval($_POST['id']);
         $grupo = $this->model->obtenerPorId($id);
-        
+
         if ($grupo) {
+            // Obtener inscripciones actuales del grupo
+            $inscripciones = $this->model->obtenerInscripcionesGrupo($id);
+
+            // Obtener todos los estudiantes para el selector
+            $estudiantes = $this->model->obtenerTodosLosEstudiantes();
+
             echo json_encode([
                 'success' => true,
-                'data' => $grupo
+                'data' => $grupo,
+                'inscripciones' => $inscripciones,
+                'estudiantes' => $estudiantes
             ]);
         } else {
             echo json_encode([
@@ -279,15 +300,17 @@ class GrupoController
     public function obtenerDatosFormulario()
     {
         header('Content-Type: application/json');
-        
+
         try {
             $profesores = $this->model->obtenerProfesores();
             $materias = $this->model->obtenerMaterias();
-            
+            $estudiantes = $this->model->obtenerTodosLosEstudiantes();
+
             echo json_encode([
                 'success' => true,
                 'profesores' => $profesores,
-                'materias' => $materias
+                'materias' => $materias,
+                'estudiantes' => $estudiantes
             ]);
         } catch (Exception $e) {
             error_log("Error en obtenerDatosFormulario: " . $e->getMessage());
@@ -303,7 +326,7 @@ class GrupoController
     public function listarTodos()
     {
         header('Content-Type: application/json');
-        
+
         try {
             $grupos = $this->model->listarTodos();
             echo json_encode([
@@ -315,6 +338,35 @@ class GrupoController
             echo json_encode([
                 'success' => false,
                 'message' => 'Error al cargar grupos: ' . $e->getMessage()
+            ]);
+        }
+        exit();
+    }
+
+    // Método para eliminar una inscripción específica
+    public function eliminarInscripcion()
+    {
+        header('Content-Type: application/json');
+
+        if (!isset($_POST['estudiante_codigo']) || !isset($_POST['grupo_id'])) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Datos incompletos para eliminar inscripción'
+            ]);
+            return;
+        }
+
+        $estudiante_codigo = $_POST['estudiante_codigo'];
+        $grupo_id = intval($_POST['grupo_id']);
+
+        try {
+            $resultado = $this->inscripcionModel->eliminar($estudiante_codigo, $grupo_id);
+            echo json_encode($resultado);
+        } catch (Exception $e) {
+            error_log("Error en eliminarInscripcion: " . $e->getMessage());
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error al eliminar inscripción: ' . $e->getMessage()
             ]);
         }
         exit();

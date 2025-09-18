@@ -19,42 +19,23 @@ class Horario {
          $this->db=$db;
      }
 
+   public function obtener(){
 
-   public function obtener(){}
+   }
 
 
    public function obtenerPorGrupo($grupo_id){
-
-
    }
 
-
-
    public function crear(){
-
-
-
    }
 
    public function editar(){
-
-
    }
-
 
    public function eliminar(){
-
-
-
    }
-
-
-
    public function validar(){
-
-
-    
    }
-
 
 }

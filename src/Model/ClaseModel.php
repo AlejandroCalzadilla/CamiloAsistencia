@@ -78,7 +78,7 @@ class ClaseModel {
         $sql = "SELECT 
                     g.id,
                     g.nombre as grupo_nombre,
-                    g.capacidad,
+                    g.capacidad_maxima as capacidad,
                     m.nombre as materia_nombre,
                     p.nombres as profesor_nombres,
                     p.apellidos as profesor_apellidos,
@@ -88,20 +88,68 @@ class ClaseModel {
                 INNER JOIN profesor p ON g.profesor_codigo = p.codigo
                 LEFT JOIN inscribe i ON g.id = i.grupo_id
                 WHERE g.id = ?
-                GROUP BY g.id, g.nombre, g.capacidad, m.nombre, p.nombres, p.apellidos";
+                GROUP BY g.id, g.nombre, g.capacidad_maxima, m.nombre, p.nombres, p.apellidos";
         
         return $this->db->fetch($sql, [$grupo_id]);
     }
 
-    // Método para crear una nueva clase
+    
     public function crearClase($dia, $grupo_id, $qr = null) {
         try {
+            // Generar código QR único si no se proporciona
+            if (!$qr) {
+                $qr = $this->generarCodigo($grupo_id);
+            } 
             $sql = "INSERT INTO clases (dia, fecha, qr, grupo_id) 
                     VALUES (?, NOW(), ?, ?)";
             
-            return $this->db->query($sql, [$dia, $qr, $grupo_id]);
+            $claseId = $this->db->insert($sql, [$dia, $qr, $grupo_id]);
+            
+            if ($claseId) {
+                return [
+                    'success' => true,
+                    'mensaje' => 'Clase creada exitosamente',
+                    'clase_id' => $claseId,
+                    'qr_codigo' => $qr
+                ];
+            } else {
+                return [
+                    'success' => false,
+                    'mensaje' => 'Error al crear la clase'
+                ];
+            }
         } catch (Exception $e) {
             error_log("Error al crear clase: " . $e->getMessage());
+            return [
+                'success' => false,
+                'mensaje' => 'Error al crear la clase: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    // Generar código QR único
+    private function generarCodigo($grupo_id) {
+        $timestamp = time();
+        $random = mt_rand(1000, 9999);
+        return 'QR_' . $grupo_id . '_' . $timestamp . '_' . $random;
+    }
+
+    // Crear asistencias para todos los estudiantes inscritos en el grupo
+    private function crearAsistenciasParaClase($clase_id, $grupo_id) {
+        try {
+            // Obtener todos los estudiantes inscritos en el grupo
+            $sql = "SELECT estudiante_codigo FROM inscribe WHERE grupo_id = ?";
+            $estudiantes = $this->db->fetchAll($sql, [$grupo_id]);
+            foreach ($estudiantes as $estudiante) {
+                // Crear registro de asistencia con estado 'ausente' por defecto
+                $sqlInsert = "INSERT INTO asistencia (fecha, tipo, estudiante_codigo, clases_id) 
+                             VALUES (CURRENT_DATE, 'ausente', ?, ?)";
+                $this->db->query($sqlInsert, [$estudiante['estudiante_codigo'], $clase_id]);
+            }
+            
+            return true;
+        } catch (Exception $e) {
+            error_log("Error al crear asistencias: " . $e->getMessage());
             return false;
         }
     }
@@ -131,19 +179,26 @@ class ClaseModel {
                 return ['success' => false, 'mensaje' => 'No estás inscrito en este grupo'];
             }
 
-            // Verificar si ya marcó asistencia
-            $sql = "SELECT 1 FROM asistencia WHERE clases_id = ? AND estudiante_codigo = ?";
-            $yaAsistio = $this->db->fetch($sql, [$clase['id'], $estudiante['codigo']]);
+            // Verificar si ya existe el registro de asistencia
+            $sql = "SELECT id, tipo FROM asistencia WHERE clases_id = ? AND estudiante_codigo = ?";
+            $asistencia = $this->db->fetch($sql, [$clase['id'], $estudiante['codigo']]);
             
-            if ($yaAsistio) {
+            if (!$asistencia) {
+                return ['success' => false, 'mensaje' => 'No se encontró registro de asistencia para esta clase'];
+            }
+            
+            if ($asistencia['tipo'] === 'presente') {
                 return ['success' => false, 'mensaje' => 'Ya has marcado asistencia para esta clase'];
             }
 
-            // Registrar asistencia
-            $sql = "INSERT INTO asistencia (clases_id, estudiante_codigo, fecha_registro) VALUES (?, ?, NOW())";
-            $resultado = $this->db->query($sql, [$clase['id'], $estudiante['codigo']]);
+            // Actualizar asistencia a 'presente' y registrar hora
+            $sql = "UPDATE asistencia SET 
+                    tipo = 'presente', 
+                    hora_inicio = CURRENT_TIME 
+                    WHERE clases_id = ? AND estudiante_codigo = ?";
+            $resultado = $this->db->update($sql, [$clase['id'], $estudiante['codigo']]);
             
-            if ($resultado) {
+            if ($resultado > 0) {
                 return ['success' => true, 'mensaje' => 'Asistencia registrada correctamente'];
             } else {
                 return ['success' => false, 'mensaje' => 'Error al registrar asistencia'];
@@ -159,6 +214,49 @@ class ClaseModel {
     private function obtenerDatosEstudiante($usuarioId) {
         $sql = "SELECT codigo, nombres, apellidos FROM estudiante WHERE usuario_id = ?";
         return $this->db->fetch($sql, [$usuarioId]);
+    }
+
+    // Obtener asistencias de una clase específica
+    public function obtenerAsistenciasClase($clase_id) {
+        try {
+            $sql = "SELECT 
+                        a.id,
+                        a.fecha,
+                        a.hora_inicio,
+                        a.hora_fin,
+                        a.tipo,
+                        a.estudiante_codigo,
+                        e.nombres,
+                        e.apellidos,
+                        e.ci
+                    FROM asistencia a
+                    INNER JOIN estudiante e ON a.estudiante_codigo = e.codigo
+                    WHERE a.clases_id = ?
+                    ORDER BY e.apellidos, e.nombres";
+            
+            return $this->db->fetchAll($sql, [$clase_id]);
+        } catch (Exception $e) {
+            error_log("Error al obtener asistencias: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Obtener detalles de una clase específica
+   
+
+    // Verificar si el usuario es profesor del grupo
+    public function esProfesorDelGrupo($usuario_id, $grupo_id) {
+        try {
+            $sql = "SELECT 1 FROM profesor p
+                    INNER JOIN grupo g ON p.codigo = g.profesor_codigo
+                    WHERE p.usuario_id = ? AND g.id = ?";
+            
+            $resultado = $this->db->fetch($sql, [$usuario_id, $grupo_id]);
+            return !empty($resultado);
+        } catch (Exception $e) {
+            error_log("Error al verificar profesor: " . $e->getMessage());
+            return false;
+        }
     }
 
     // Getters

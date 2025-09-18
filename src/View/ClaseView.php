@@ -1,26 +1,31 @@
 <?php
-class ClaseView {
+class ClaseView
+{
     private $claseModel;
     private $message = '';
     private $messageType = '';
 
-    public function __construct(ClaseModel $claseModel) {
+    public function __construct(ClaseModel $claseModel)
+    {
         $this->claseModel = $claseModel;
     }
 
-    public function showSuccessMessage($message) {
+    public function showSuccessMessage($message)
+    {
         $this->message = $message;
         $this->messageType = 'success';
     }
 
-    public function showErrorMessage($message) {
+    public function showErrorMessage($message)
+    {
         $this->message = $message;
         $this->messageType = 'error';
     }
 
-    public function render($grupo_id) {
+    public function render($grupo_id)
+    {
         $data = $this->claseModel->mostrar($grupo_id);
-     
+
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Clases - Sistema de Asistencia</title>";
         echo "<style>";
@@ -31,19 +36,19 @@ class ClaseView {
         echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
         echo ".grupo-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }";
         echo ".clases-section { margin: 30px 0; }";
-        
+
         // Estilos de las tarjetas de clase
         echo ".clase-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; transition: all 0.3s ease; }";
         echo ".clase-card.asistencia-presente { background: #d4edda; border-color: #c3e6cb; border-left: 5px solid #28a745; }";
         echo ".clase-card.asistencia-ausente { background: #f8d7da; border-color: #f5c6cb; border-left: 5px solid #dc3545; }";
         echo ".clase-card h4 { color: #495057; margin: 0 0 10px 0; }";
         echo ".clase-meta { color: #6c757d; font-size: 0.9em; margin: 5px 0; }";
-        
+
         // Indicador de asistencia
         echo ".asistencia-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 10px; }";
         echo ".badge-presente { background: #d4edda; color: #155724; }";
         echo ".badge-ausente { background: #f8d7da; color: #721c24; }";
-        
+
         // Formulario de QR
         echo ".qr-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 10px 0; }";
         echo ".qr-input { width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; }";
@@ -54,7 +59,7 @@ class ClaseView {
         echo ".upload-btn { background: #2196f3; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; }";
         echo ".upload-btn:hover { background: #1976d2; }";
         echo ".preview-image { max-width: 200px; max-height: 200px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }";
-        
+
         echo ".btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
         echo ".btn:hover { background: #0056b3; }";
         echo ".btn-success { background: #28a745; }";
@@ -73,98 +78,159 @@ class ClaseView {
         echo ".role-estudiante { background: #cce7ff; color: #004085; }";
         echo ".role-admin { background: #f8d7da; color: #721c24; }";
         echo ".qr-code { background: #fff; border: 2px dashed #007bff; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }";
+
+        // Estilos para crear clase
+        echo ".crear-clase-form { background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 20px; margin: 20px 0; display: none; }";
+        echo ".form-group { margin-bottom: 15px; }";
+        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }";
+        echo ".btn-crear-clase { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }";
+        echo ".btn-crear-clase:hover { background: #218838; }";
+        echo ".qr-display { background: #fff; border: 2px solid #28a745; padding: 15px; border-radius: 8px; text-align: center; margin: 10px 0; }";
+        echo ".qr-codigo { font-family: monospace; font-size: 14px; background: #f8f9fa; padding: 8px; border-radius: 4px; margin: 5px 0; }";
         echo "</style>";
-        
-        // JavaScript para manejo de QR
+
+       
         echo "<script>";
-        echo "function registrarAsistencia(claseId, qrCode) {";
-        echo "  if (!qrCode.trim()) {";
-        echo "    alert('Por favor ingresa el código QR');";
-        echo "    return;";
-        echo "  }";
-        echo "  ";
-        echo "  fetch('procesar-qr.php', {";
-        echo "    method: 'POST',";
-        echo "    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },";
-        echo "    body: 'qr_codigo=' + encodeURIComponent(qrCode) + '&clase_id=' + claseId";
-        echo "  })";
-        echo "  .then(response => response.json())";
-        echo "  .then(data => {";
-        echo "    if (data.success) {";
-        echo "      alert(data.mensaje);";
-        echo "      location.reload();";
-        echo "    } else {";
-        echo "      alert('Error: ' + data.mensaje);";
-        echo "    }";
-        echo "  })";
-        echo "  .catch(error => {";
-        echo "    alert('Error de conexión');";
-        echo "  });";
-        echo "}";
-        echo "";
-        echo "function subirImagenQR(claseId, fileInput) {";
-        echo "  if (!fileInput.files || fileInput.files.length === 0) {";
-        echo "    alert('Por favor selecciona una imagen');";
-        echo "    return;";
-        echo "  }";
-        echo "  ";
-        echo "  const file = fileInput.files[0];";
-        echo "  if (!file.type.startsWith('image/')) {";
-        echo "    alert('Por favor selecciona solo archivos de imagen');";
-        echo "    return;";
-        echo "  }";
-        echo "  ";
-        echo "  const formData = new FormData();";
-        echo "  formData.append('qr_imagen', file);";
-        echo "  formData.append('clase_id', claseId);";
-        echo "  ";
-        echo "  const uploadBtn = document.getElementById('upload_btn_' + claseId);";
-        echo "  const originalText = uploadBtn.textContent;";
-        echo "  uploadBtn.textContent = '⏳ Procesando...';";
-        echo "  uploadBtn.disabled = true;";
-        echo "  ";
-        echo "  fetch('procesar-qr.php', {";
-        echo "    method: 'POST',";
-        echo "    body: formData";
-        echo "  })";
-        echo "  .then(response => response.json())";
-        echo "  .then(data => {";
-        echo "    if (data.success) {";
-        echo "      alert(data.mensaje);";
-        echo "      location.reload();";
-        echo "    } else {";
-        echo "      alert('Error: ' + data.mensaje);";
-        echo "    }";
-        echo "  })";
-        echo "  .catch(error => {";
-        echo "    alert('Error de conexión');";
-        echo "  })";
-        echo "  .finally(() => {";
-        echo "    uploadBtn.textContent = originalText;";
-        echo "    uploadBtn.disabled = false;";
-        echo "  });";
-        echo "}";
-        echo "";
-        echo "function previsualizarImagen(input, claseId) {";
-        echo "  if (input.files && input.files[0]) {";
-        echo "    const reader = new FileReader();";
-        echo "    reader.onload = function(e) {";
-        echo "      let preview = document.getElementById('preview_' + claseId);";
-        echo "      if (!preview) {";
-        echo "        preview = document.createElement('img');";
-        echo "        preview.id = 'preview_' + claseId;";
-        echo "        preview.className = 'preview-image';";
-        echo "        input.parentNode.appendChild(preview);";
-        echo "      }";
-        echo "      preview.src = e.target.result;";
-        echo "    };";
-        echo "    reader.readAsDataURL(input.files[0]);";
-        echo "  }";
-        echo "}";
+        echo "
+        // Función para mostrar/ocultar formulario de crear clase
+        function mostrarFormularioCrearClase() {
+            console.log('Ejecutando mostrarFormularioCrearClase');
+            const form = document.getElementById('crear-clase-form');
+            if (form) {
+                form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
+            } else {
+                console.error('No se encontró el elemento crear-clase-form');
+            }
+        }
+
+        // Función para crear clase
+        function crearClase() {
+            console.log('Ejecutando crearClase');
+            const dia = document.getElementById('dia-clase').value;
+            const horaInicio = document.getElementById('hora-inicio').value;
+            const horaFin = document.getElementById('hora-fin').value;
+            
+            // Validaciones
+            if (!dia) {
+                alert('Por favor selecciona una fecha');
+                return;
+            }
+            
+            if (!horaInicio) {
+                alert('Por favor selecciona la hora de inicio');
+                return;
+            }
+            
+            if (!horaFin) {
+                alert('Por favor selecciona la hora de fin');
+                return;
+            }
+            
+            // Validar que la hora de fin sea posterior a la hora de inicio
+            if (horaFin <= horaInicio) {
+                alert('La hora de fin debe ser posterior a la hora de inicio');
+                return;
+            }
+            
+            const btn = document.getElementById('btn-crear-clase');
+            const originalText = btn.textContent;
+            btn.textContent = '⏳ Creando...';
+            btn.disabled = true;
+            
+            // Agregar las horas al body del request
+            fetch(window.location.pathname + window.location.search, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'evento=crear_clase&dia=' + encodeURIComponent(dia) + 
+                      '&hora_inicio=' + encodeURIComponent(horaInicio) +
+                      '&hora_fin=' + encodeURIComponent(horaFin)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('Clase creada exitosamente. Código QR: ' + data.qr_codigo);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.mensaje);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            })
+            .finally(() => {
+                btn.textContent = originalText;
+                btn.disabled = false;
+            });
+        }
+
+        // Función para registrar asistencia
+         function registrarAsistencia(claseId, qrCode) {
+            if (!qrCode.trim()) {
+                alert('Por favor ingresa el código QR');
+                return;
+            }
+            console.log('Registrando asistencia para claseId:', claseId, 'con QR:', qrCode);
+            
+            fetch(window.location.pathname + window.location.search, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'evento=registrarAsistencia&qr_codigo=' + encodeURIComponent(qrCode) + '&clase_id=' + claseId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert(data.mensaje);
+                    location.reload();
+                } else {
+                    alert('Error: ' + data.mensaje);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            });
+        }
+        // Función para ver asistencias
+        function verAsistencias(claseId) {
+            fetch(window.location.pathname + window.location.search, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'evento=obtener_asistencias&clase_id=' + claseId
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    mostrarModalAsistencias(data.asistencias, data.clase);
+                } else {
+                    alert('Error: ' + data.mensaje);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error de conexión');
+            });
+        }
+
+        // Función para cerrar modal
+        function cerrarModal() {
+            const modal = document.querySelector('[style*=\"position: fixed\"]');
+            if (modal) modal.remove();
+        }
+
+        // Verificar que el DOM esté cargado
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado, funciones disponibles:', {
+                mostrarFormularioCrearClase: typeof mostrarFormularioCrearClase,
+                crearClase: typeof crearClase,
+                registrarAsistencia: typeof registrarAsistencia
+            });
+        });
+        ";
         echo "</script>";
-        
+
         echo "</head><body>";
-        
+
         echo "<div class='container'>";
         echo "<div class='header'>";
         echo "<h1>📚 Clases del Grupo</h1>";
@@ -208,40 +274,67 @@ class ClaseView {
             echo "<p><strong>Grupo:</strong> {$data['grupo']['grupo_nombre']}</p>";
             echo "<p><strong>Materia:</strong> {$data['grupo']['materia_nombre']}</p>";
             echo "<p><strong>Profesor:</strong> {$data['grupo']['profesor_nombres']} {$data['grupo']['profesor_apellidos']}</p>";
-            echo "<p><strong>Capacidad:</strong> {$data['grupo']['capacidad']} estudiantes</p>";
-            echo "<p><strong>Inscritos:</strong> {$data['grupo']['estudiantes_inscritos']} estudiantes</p>";
             
-            $rol = $data['rol'];
-            $roleClass = "role-" . $rol;
-            $roleText = ucfirst($rol);
-            echo "<p><strong>Tu rol:</strong> <span class='role-badge $roleClass'>$roleText</span></p>";
+            
+            echo "</div>";
+        }
+
+        // Formulario para crear clase (solo para profesores)
+          if ($data['rol'] === 'profesor') {
+            echo "<div id='crear-clase-form' class='crear-clase-form'>";
+            echo "<h4>➕ Crear Nueva Clase</h4>";
+            
+            echo "<div class='form-group'>";
+            echo "<label for='dia-clase'>Fecha de la clase:</label>";
+            echo "<input type='date' id='dia-clase' class='form-control' value='" . date('Y-m-d') . "'>";
+            echo "</div>";
+            
+            echo "<div class='form-group'>";
+            echo "<label for='hora-inicio'>Hora de inicio:</label>";
+            echo "<input type='time' id='hora-inicio' class='form-control' value='" . date('H:i') . "'>";
+            echo "</div>";
+            
+            echo "<div class='form-group'>";
+            echo "<label for='hora-fin'>Hora de fin:</label>";
+            echo "<input type='time' id='hora-fin' class='form-control' value='" . date('H:i', strtotime('+2 hours')) . "'>";
+            echo "</div>";
+            
+            echo "<button id='btn-crear-clase' class='btn-crear-clase' onclick='crearClase()'>🎓 Crear Clase</button>";
+            echo "<button class='btn btn-secondary' onclick='mostrarFormularioCrearClase()' style='margin-left: 10px;'>❌ Cancelar</button>";
             echo "</div>";
         }
 
         // Mostrar clases
         echo "<div class='clases-section'>";
-        
+
         if (empty($data['clases'])) {
             echo "<div class='no-clases'>";
             echo "<h3>📅 Sin clases registradas</h3>";
             if ($data['rol'] === 'profesor') {
                 echo "<p>No hay clases creadas para este grupo.</p>";
-                echo "<a href='crear-clase.php?grupo_id={$grupo_id}' class='btn btn-success'>➕ Crear Primera Clase</a>";
+                echo "<button onclick='mostrarFormularioCrearClase()' class='btn btn-success'>➕ Crear Primera Clase</button>";
             } else {
                 echo "<p>El profesor aún no ha creado clases para este grupo.</p>";
             }
             echo "</div>";
-            
+
         } else {
             // Mostrar lista de clases
             echo "<h3>📅 Clases Registradas (" . count($data['clases']) . ")</h3>";
-            
+
+            // Botón para crear nueva clase (solo para profesores)
+            if ($data['rol'] === 'profesor') {
+                echo "<div style='margin-bottom: 20px;'>";
+                echo "<button onclick='mostrarFormularioCrearClase()' class='btn btn-success'>➕ Crear Nueva Clase</button>";
+                echo "</div>";
+            }
+
             foreach ($data['clases'] as $clase) {
                 // Determinar el estilo de la tarjeta según la asistencia
                 $cardClass = "clase-card";
                 $badgeClass = "";
                 $badgeText = "";
-                
+
                 if ($data['rol'] === 'estudiante') {
                     if ($clase['mi_asistencia'] == 1) {
                         $cardClass .= " asistencia-presente";
@@ -253,22 +346,22 @@ class ClaseView {
                         $badgeText = "❌ Ausente";
                     }
                 }
-                
+
                 echo "<div class='$cardClass'>";
                 echo "<h4>📖 Clase del " . date('d/m/Y', strtotime($clase['dia']));
-                
+
                 // Mostrar badge de asistencia para estudiantes
                 if ($data['rol'] === 'estudiante') {
                     echo "<span class='asistencia-badge $badgeClass'>$badgeText</span>";
                 }
-                
+
                 echo "</h4>";
                 echo "<div class='clase-meta'>";
                 echo "<p><strong>Fecha y hora:</strong> " . date('d/m/Y H:i:s', strtotime($clase['fecha'])) . "</p>";
-                echo "<p><strong>Asistencias registradas:</strong> {$clase['asistencias_registradas']} estudiantes</p>";
-                
+               /*  echo "<p><strong>Asistencias registradas:</strong> {$clase['asistencias_registradas']} estudiantes</p>"; */
+
                 // Mostrar código QR si existe
-                if ($clase['qr']) {
+                if ($clase['qr'] && $data['rol'] === 'profesor') {
                     echo "<div class='qr-code'>";
                     echo "<p><strong>🔗 Código QR:</strong> {$clase['qr']}</p>";
                     if ($data['rol'] === 'profesor') {
@@ -276,48 +369,40 @@ class ClaseView {
                     }
                     echo "</div>";
                 }
-                
+
                 echo "</div>";
-                
+
                 // Botones según el rol
                 echo "<div style='margin-top: 15px;'>";
-                
+
                 if ($data['rol'] === 'profesor') {
                     // Botones para profesores
-                    echo "<a href='ver-asistencias.php?clase_id={$clase['id']}' class='btn'>👥 Ver Asistencias</a>";
-                    echo "<a href='tomar-asistencia.php?clase_id={$clase['id']}' class='btn btn-success'>📋 Tomar Asistencia</a>";
-                    echo "<a href='generar-qr.php?clase_id={$clase['id']}' class='btn btn-warning'>🔗 Generar QR</a>";
+                   
+                   
                     echo "<a href='editar-clase.php?clase_id={$clase['id']}' class='btn btn-warning'>✏️ Editar</a>";
                     echo "<a href='eliminar-clase.php?clase_id={$clase['id']}' class='btn btn-danger' onclick='return confirm(\"¿Estás seguro de eliminar esta clase?\")'>🗑️ Eliminar</a>";
-                    
+
                 } elseif ($data['rol'] === 'estudiante') {
                     // Botones para estudiantes
-                    echo "<a href='ver-mi-asistencia.php?clase_id={$clase['id']}' class='btn'>📊 Mi Asistencia</a>";
-                    
+                     
+       
                     // Solo mostrar opción de registrar asistencia si no ha asistido y hay QR
                     if ($clase['mi_asistencia'] == 0 && $clase['qr']) {
                         echo "<div class='qr-form'>";
-                        echo "<h5>📱 Registrar Asistencia con QR</h5>";
-                        
+                        echo "<h5>📱 Registrar Asistencia con Codigo</h5>";
+
                         // Opción 1: Ingresar código manualmente
                         echo "<div style='margin-bottom: 15px;'>";
-                        echo "<label><strong>Opción 1: Escribir código QR</strong></label>";
+                        echo "<label><strong>Opción 1: Escribir código </strong></label>";
                         echo "<div>";
-                        echo "<input type='text' id='qr_{$clase['id']}' class='qr-input' placeholder='Ingresa código QR' maxlength='100'>";
+                        echo "<input type='text' id='qr_{$clase['id']}' class='qr-input' placeholder='Ingresa código ' maxlength='100'>";
+                        
+                       
                         echo "<button class='btn btn-success' onclick='registrarAsistencia({$clase['id']}, document.getElementById(\"qr_{$clase['id']}\").value)'>✅ Marcar Asistencia</button>";
                         echo "</div>";
-                        echo "</div>";
-                        
-                        // Opción 2: Subir imagen con QR
-                        echo "<div class='qr-upload'>";
-                        echo "<label><strong>Opción 2: Subir imagen con código QR</strong></label>";
-                        echo "<div class='file-input'>";
-                        echo "<input type='file' id='qr_file_{$clase['id']}' accept='image/*' onchange='previsualizarImagen(this, {$clase['id']})'>";
-                        echo "<button id='upload_btn_{$clase['id']}' class='upload-btn' onclick='subirImagenQR({$clase['id']}, document.getElementById(\"qr_file_{$clase['id']}\"))'>� Subir y Procesar</button>";
-                        echo "</div>";
-                        echo "<small style='color: #666;'>Formatos soportados: PNG, JPG, JPEG</small>";
-                        echo "</div>";
-                        
+
+                       
+
                         echo "</div>";
                     } elseif ($clase['mi_asistencia'] == 1) {
                         echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
@@ -325,27 +410,15 @@ class ClaseView {
                         echo "</div>";
                     }
                 }
-                
+
                 echo "</div>";
                 echo "</div>";
             }
         }
-        
+        echo "</div>";
+      
         echo "</div>";
 
-        // Acciones globales según el rol
-        echo "<div class='actions'>";
-        
-        if ($data['rol'] === 'profesor') {
-            echo "<a href='crear-clase.php?grupo_id={$grupo_id}' class='btn btn-success'>➕ Crear Nueva Clase</a>";
-            echo "<a href='reporte-asistencias.php?grupo_id={$grupo_id}' class='btn btn-warning'>📊 Reporte General</a>";
-        } elseif ($data['rol'] === 'estudiante') {
-            echo "<a href='mis-asistencias-grupo.php?grupo_id={$grupo_id}' class='btn btn-success'>📊 Mis Asistencias</a>";
-        }
-        
-        echo "<a href='grupo.php' class='btn btn-secondary'>🔙 Volver a Grupos</a>";
-        echo "</div>";
-        
         echo "</div>";
         echo "</body></html>";
     }

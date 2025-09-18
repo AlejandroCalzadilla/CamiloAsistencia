@@ -352,6 +352,28 @@ class GrupoModel
         }
     }
 
+    // Método para obtener las inscripciones de un grupo específico
+    public function obtenerInscripcionesGrupo($grupo_id)
+    {
+        try {
+            $sql = "SELECT 
+                        i.estudiante_codigo,
+                        i.fecha_inscripcion,
+                        e.nombres,
+                        e.apellidos,
+                        e.ci,
+                        e.estado
+                    FROM inscribe i
+                    INNER JOIN estudiante e ON i.estudiante_codigo = e.codigo
+                    WHERE i.grupo_id = ?
+                    ORDER BY e.apellidos, e.nombres";
+            return $this->db->fetchAll($sql, [$grupo_id]);
+        } catch (Exception $e) {
+            error_log("Error en GrupoModel::obtenerInscripcionesGrupo: " . $e->getMessage());
+            return [];
+        }
+    }
+
     // Método para actualizar la capacidad actual del grupo
     public function actualizarCapacidadActual($grupo_id)
     {

@@ -89,6 +89,21 @@ class GrupoView
         echo ".search-box input { padding: 10px; border: 1px solid #ddd; border-radius: 4px; width: 300px; }";
         echo ".loading { text-align: center; padding: 20px; color: #6c757d; }";
         echo ".empty-state { text-align: center; padding: 40px; color: #6c757d; background: #f8f9fa; border-radius: 8px; }";
+        
+        // Estilos para gestión de inscripciones
+        echo ".inscripciones-section { margin: 20px 0; padding: 15px; border: 1px solid #dee2e6; border-radius: 8px; background: #f8f9fa; }";
+        echo ".inscripciones-title { margin: 0 0 15px 0; color: #495057; font-size: 16px; }";
+        echo ".inscripcion-item { display: flex; align-items: center; justify-content: space-between; padding: 10px; margin: 5px 0; background: white; border: 1px solid #dee2e6; border-radius: 4px; }";
+        echo ".inscripcion-info { flex: 1; }";
+        echo ".inscripcion-nombre { font-weight: bold; color: #495057; }";
+        echo ".inscripcion-detalles { font-size: 0.9em; color: #6c757d; margin-top: 3px; }";
+        echo ".btn-remove-inscripcion { background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer; font-size: 0.8em; }";
+        echo ".btn-remove-inscripcion:hover { background: #c82333; }";
+        echo ".agregar-inscripcion { margin-top: 15px; padding: 15px; border-top: 1px solid #dee2e6; }";
+        echo ".agregar-inscripcion select { width: 70%; margin-right: 10px; }";
+        echo ".btn-agregar-inscripcion { background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }";
+        echo ".btn-agregar-inscripcion:hover { background: #218838; }";
+        echo ".sin-inscripciones { text-align: center; color: #6c757d; padding: 20px; font-style: italic; }";
         echo "</style>";
 
         // JavaScript para el dropdown
@@ -187,6 +202,23 @@ class GrupoView
             echo "<label>Capacidad Máxima:</label>";
             echo "<input type='number' id='capacidad_maxima' name='capacidad_maxima' value='100' min='1' style='width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #ddd; border-radius: 4px;'>";
             echo "</div>";
+            
+            // Sección de inscripciones (solo visible en modo edición)
+            echo "<div id='seccion-inscripciones' style='display: none;'>";
+            echo "<div class='inscripciones-section'>";
+            echo "<h5 class='inscripciones-title'>👥 Gestión de Inscripciones</h5>";
+            echo "<div id='lista-inscripciones'>";
+            echo "<div class='sin-inscripciones'>No hay inscripciones registradas</div>";
+            echo "</div>";
+            echo "<div class='agregar-inscripcion'>";
+            echo "<select id='select-estudiante' style='width: 70%; margin-right: 10px; padding: 8px; border: 1px solid #ddd; border-radius: 4px;'>";
+            echo "<option value=''>Selecciona un estudiante para agregar</option>";
+            echo "</select>";
+            echo "<button type='button' onclick='agregarInscripcion()' class='btn-agregar-inscripcion'>➕ Agregar</button>";
+            echo "</div>";
+            echo "</div>";
+            echo "</div>";
+            
             echo "<div>";
             echo "<button type='submit' class='btn btn-success'>💾 Guardar</button>";
             echo "<button type='button' onclick='cancelarFormulario()' class='btn btn-secondary'>❌ Cancelar</button>";
@@ -215,7 +247,7 @@ class GrupoView
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='InscripcionClicked'>";
-            echo "<button type='submit' class='btn btn-warning'>� Inscripciones</button>";
+           
             echo "</form>";
             echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
             echo "<input type='hidden' name='evento' value='UsuariosClicked'>";
@@ -261,24 +293,22 @@ class GrupoView
                 echo "<div style='margin-top: 15px;'>";
 
                 if ($grupo['rol'] === 'profesor') {
-                  
                     echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
                     echo "<input type='hidden' name='evento' value='ver_clases'>";
-                    echo "<input type='hidden' name='grupo_id' value='{$grupoItem['id']}'>";
+                    echo "<input type='hidden' name='grupo_id' value='" . $grupoItem['id'] . "'>";
                     echo "<button type='submit' class='btn btn-warning'>📚 Ver Clases</button>";
-                   
+                    echo "</form>";
                 } elseif ($grupo['rol'] === 'estudiante') {
                     // Botones para estudiantes (solo lectura)
-
 
                     // Formulario para ir a clases
                     echo "<form method='POST' style='display: inline-block; margin: 5px;'>";
                     echo "<input type='hidden' name='evento' value='ver_clases'>";
-                    echo "<input type='hidden' name='grupo_id' value='{$grupoItem['id']}'>";
+                    echo "<input type='hidden' name='grupo_id' value='" . $grupoItem['id'] . "'>";
                     echo "<button type='submit' class='btn btn-success'>📚 Ver Clases</button>";
                     echo "</form>";
 
-                    echo "<a href='mis-asistencias.php?grupo_id={$grupoItem['id']}' class='btn btn-success'>📊 Mis Asistencias</a>";
+                    echo "<a href='mis-asistencias.php?grupo_id=" . $grupoItem['id'] . "' class='btn btn-success'>📊 Mis Asistencias</a>";
                 }
 
                 echo "</div>";
@@ -309,6 +339,9 @@ class GrupoView
             // Variables globales
             let profesores = [];
             let materias = [];
+            let estudiantes = [];
+            let inscripcionesActuales = [];
+            let grupoIdActual = null;
             let modoEdicion = false;
             
             // Cargar datos iniciales
@@ -337,6 +370,7 @@ class GrupoView
                         if (data.success) {
                             profesores = data.profesores;
                             materias = data.materias;
+                            estudiantes = data.estudiantes;
                             llenarSelectores();
                         } else {
                             console.error('Error en respuesta:', data.message);
@@ -355,10 +389,12 @@ class GrupoView
             function llenarSelectores() {
                 const selectMateria = document.getElementById('materia_id');
                 const selectProfesor = document.getElementById('profesor_codigo');
+                const selectEstudiante = document.getElementById('select-estudiante');
                 
                 // Limpiar selectores
                 selectMateria.innerHTML = '<option value=\"\">Selecciona una materia</option>';
                 selectProfesor.innerHTML = '<option value=\"\">Selecciona un profesor</option>';
+                selectEstudiante.innerHTML = '<option value=\"\">Selecciona un estudiante para agregar</option>';
                 
                 // Llenar materias
                 materias.forEach(materia => {
@@ -375,6 +411,14 @@ class GrupoView
                     option.textContent = profesor.nombres + ' ' + profesor.apellidos;
                     selectProfesor.appendChild(option);
                 });
+                
+                // Llenar estudiantes
+                estudiantes.forEach(estudiante => {
+                    const option = document.createElement('option');
+                    option.value = estudiante.codigo;
+                    option.textContent = estudiante.nombres + ' ' + estudiante.apellidos + ' (CI: ' + estudiante.ci + ')';
+                    selectEstudiante.appendChild(option);
+                });
             }
             
             // Mostrar formulario para crear
@@ -383,6 +427,9 @@ class GrupoView
                 document.getElementById('formulario-grupo').style.display = 'block';
                 document.getElementById('form-grupo').reset();
                 document.getElementById('grupo-id').value = '';
+                document.getElementById('seccion-inscripciones').style.display = 'none';
+                inscripcionesActuales = [];
+                grupoIdActual = null;
                 modoEdicion = false;
             }
             
@@ -390,6 +437,8 @@ class GrupoView
             function editarGrupo(id) {
                 document.getElementById('titulo-formulario').textContent = 'Editar Grupo';
                 document.getElementById('formulario-grupo').style.display = 'block';
+                document.getElementById('seccion-inscripciones').style.display = 'block';
+                grupoIdActual = id;
                 modoEdicion = true;
                 
                 // Cargar datos del grupo
@@ -409,6 +458,11 @@ class GrupoView
                         document.getElementById('materia_id').value = grupo.materia_id;
                         document.getElementById('profesor_codigo').value = grupo.profesor_codigo;
                         document.getElementById('capacidad_maxima').value = grupo.capacidad_maxima;
+                        
+                        // Cargar inscripciones
+                        inscripcionesActuales = data.inscripciones || [];
+                        mostrarInscripciones();
+                        actualizarSelectorEstudiantes();
                     }
                 })
                 .catch(error => console.error('Error:', error));
@@ -418,6 +472,9 @@ class GrupoView
             function cancelarFormulario() {
                 document.getElementById('formulario-grupo').style.display = 'none';
                 document.getElementById('form-grupo').reset();
+                document.getElementById('seccion-inscripciones').style.display = 'none';
+                inscripcionesActuales = [];
+                grupoIdActual = null;
                 modoEdicion = false;
             }
             
@@ -564,6 +621,137 @@ class GrupoView
                 form.appendChild(input2);
                 document.body.appendChild(form);
                 form.submit();
+            }
+            
+            // Funciones para gestión de inscripciones
+            function mostrarInscripciones() {
+                const container = document.getElementById('lista-inscripciones');
+                
+                if (inscripcionesActuales.length === 0) {
+                    container.innerHTML = '<div class=\"sin-inscripciones\">No hay inscripciones registradas</div>';
+                    return;
+                }
+                
+                let html = '';
+                inscripcionesActuales.forEach(inscripcion => {
+                    html += '<div class=\"inscripcion-item\">';
+                    html += '<div class=\"inscripcion-info\">';
+                    html += '<div class=\"inscripcion-nombre\">' + inscripcion.nombres + ' ' + inscripcion.apellidos + '</div>';
+                    html += '<div class=\"inscripcion-detalles\">CI: ' + inscripcion.ci + ' | Código: ' + inscripcion.estudiante_codigo + '</div>';
+                    html += '</div>';
+                    html += '<button type=\"button\" onclick=\"eliminarInscripcion(\\'' + inscripcion.estudiante_codigo + '\\')\" class=\"btn-remove-inscripcion\">🗑️ Eliminar</button>';
+                    html += '</div>';
+                });
+                
+                container.innerHTML = html;
+            }
+            
+            function actualizarSelectorEstudiantes() {
+                const select = document.getElementById('select-estudiante');
+                const estudiantesInscritos = inscripcionesActuales.map(i => i.estudiante_codigo);
+                
+                // Limpiar y repoblar el selector excluyendo estudiantes ya inscritos
+                select.innerHTML = '<option value=\"\">Selecciona un estudiante para agregar</option>';
+                
+                estudiantes.forEach(estudiante => {
+                    if (!estudiantesInscritos.includes(estudiante.codigo)) {
+                        const option = document.createElement('option');
+                        option.value = estudiante.codigo;
+                        option.textContent = estudiante.nombres + ' ' + estudiante.apellidos + ' (CI: ' + estudiante.ci + ')';
+                        select.appendChild(option);
+                    }
+                });
+            }
+            
+            function agregarInscripcion() {
+                const select = document.getElementById('select-estudiante');
+                const estudianteCodigo = select.value;
+                
+                if (!estudianteCodigo) {
+                    alert('Selecciona un estudiante');
+                    return;
+                }
+                
+                // Buscar los datos del estudiante
+                const estudiante = estudiantes.find(e => e.codigo === estudianteCodigo);
+                if (!estudiante) {
+                    alert('Error: Estudiante no encontrado');
+                    return;
+                }
+                
+                if (modoEdicion && grupoIdActual) {
+                    // Si estamos editando, agregar inmediatamente a la base de datos
+                    fetch(window.location.pathname, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'evento=actualizar_grupo&id=' + grupoIdActual + 
+                              '&nombre=' + encodeURIComponent(document.getElementById('nombre').value) +
+                              '&materia_id=' + document.getElementById('materia_id').value +
+                              '&profesor_codigo=' + document.getElementById('profesor_codigo').value +
+                              '&capacidad_maxima=' + document.getElementById('capacidad_maxima').value +
+                              '&capacidad_actual=' + inscripcionesActuales.length +
+                              '&nuevas_inscripciones[]=' + estudianteCodigo
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Agregar a la lista local
+                            const nuevaInscripcion = {
+                                estudiante_codigo: estudiante.codigo,
+                                nombres: estudiante.nombres,
+                                apellidos: estudiante.apellidos,
+                                ci: estudiante.ci,
+                                fecha_inscripcion: new Date().toISOString()
+                            };
+                            inscripcionesActuales.push(nuevaInscripcion);
+                            mostrarInscripciones();
+                            actualizarSelectorEstudiantes();
+                            alert('Inscripción agregada exitosamente');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al agregar inscripción');
+                    });
+                } else {
+                    alert('Debes guardar el grupo primero antes de agregar inscripciones');
+                }
+            }
+            
+            function eliminarInscripcion(estudianteCodigo) {
+                if (!confirm('¿Estás seguro de eliminar esta inscripción?')) {
+                    return;
+                }
+                
+                if (modoEdicion && grupoIdActual) {
+                    fetch(window.location.pathname, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: 'evento=eliminar_inscripcion&estudiante_codigo=' + estudianteCodigo + '&grupo_id=' + grupoIdActual
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Eliminar de la lista local
+                            inscripcionesActuales = inscripcionesActuales.filter(i => i.estudiante_codigo !== estudianteCodigo);
+                            mostrarInscripciones();
+                            actualizarSelectorEstudiantes();
+                            alert('Inscripción eliminada exitosamente');
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error al eliminar inscripción');
+                    });
+                }
             }
             ";
             echo "</script>";
