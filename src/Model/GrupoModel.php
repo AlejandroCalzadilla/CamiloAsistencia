@@ -175,11 +175,13 @@ class GrupoModel
                 $grupos = [];
                 $datosAdicionales = [];
 
-                // Si es admin, devolver todos los grupos
+                // Si es admin, devolver todos los grupos y estudiantes
                 if ($rol === 'admin') {
                     $grupos = $this->obtenerTodosLosGrupos();
+                    $estudiantes = $this->obtenerTodosLosEstudiantes();
                     return [
                         'grupos' => $grupos,
+                        'estudiantes' => $estudiantes,
                         'rol' => 'admin',
                         'mensaje' => 'Mostrando todos los grupos del sistema',
                         'usuario_id' => $usuarioId
@@ -334,6 +336,18 @@ class GrupoModel
             return $this->db->fetchAll($sql);
         } catch (Exception $e) {
             error_log("Error en GrupoModel::obtenerMaterias: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    // Método para obtener todos los estudiantes disponibles
+    public function obtenerTodosLosEstudiantes()
+    {
+        try {
+            $sql = "SELECT codigo, nombres, apellidos, ci, genero, estado FROM estudiante ORDER BY apellidos, nombres";
+            return $this->db->fetchAll($sql);
+        } catch (Exception $e) {
+            error_log("Error en GrupoModel::obtenerTodosLosEstudiantes: " . $e->getMessage());
             return [];
         }
     }

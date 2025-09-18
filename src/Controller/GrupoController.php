@@ -7,11 +7,13 @@ class GrupoController
 {
     private $model;
     private $view;
-    public function __construct(GrupoModel $model, GrupoView $view)
+    private $inscripcionModel;
+
+    public function __construct(GrupoModel $model, GrupoView $view, InscripcionModel $inscripcionModel)
     {
         $this->model = $model;
         $this->view = $view;
-
+        $this->inscripcionModel = $inscripcionModel;
     }
 
     // funcion para manejar la solicitud
@@ -138,7 +140,6 @@ class GrupoController
             ]);
             return;
         }
-
         $data = [
             'nombre' => $_POST['nombre'],
             'capacidad_maxima' => $_POST['capacidad_maxima'] ?? 100,
@@ -156,8 +157,19 @@ class GrupoController
             ]);
             return;
         }
-
+        
         $resultado = $this->model->crear($data);
+        
+        // Si el grupo se creó exitosamente y hay inscripciones que crear
+        if ($resultado['success'] && isset($_POST['inscripciones']) && !empty($_POST['inscripciones'])) {
+            $grupo_id = $resultado['id'];
+            $this->inscripcionModel = $_POST['inscripciones']; // Array de códigos de estudiantes
+
+            foreach ($this->inscripcionModel as $estudiante_codigo) {
+                $this->inscripcionModel->crear($estudiante_codigo, $grupo_id);
+            }
+        }
+        
         echo json_encode($resultado);
         exit();
     }
@@ -195,6 +207,21 @@ class GrupoController
         }
 
         $resultado = $this->model->actualizar($id, $data);
+        
+        // Si el grupo se actualizó exitosamente y hay nuevas inscripciones que crear
+        if ($resultado['success'] && isset($_POST['nuevas_inscripciones']) && !empty($_POST['nuevas_inscripciones'])) {
+            require_once __DIR__ . '/../Model/InscripcionModel.php';
+            require_once __DIR__ . '/../Conexion/Conexion.php';
+            $conexion = Conexion::getInstance();
+            $inscripcionModel = new InscripcionModel($conexion);
+            
+            $nuevas_inscripciones = $_POST['nuevas_inscripciones']; // Array de códigos de estudiantes
+            
+            foreach ($nuevas_inscripciones as $estudiante_codigo) {
+                $inscripcionModel->crear($estudiante_codigo, $id);
+            }
+        }
+        
         echo json_encode($resultado);
         exit();
     }

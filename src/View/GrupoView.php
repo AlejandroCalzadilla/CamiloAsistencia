@@ -129,36 +129,8 @@ class GrupoView
                 echo "<p>Código: {$grupo['codigo']}</p>";
             }
             echo "</div>";
-
             echo "<div class='dropdown-body'>";
-
-            if ($grupo['rol'] === 'profesor') {
-                // Solo opciones generales para profesores
-                echo "<a href='mi-perfil.php' class='dropdown-item'>👤 Mi Perfil</a>";
-                echo "<a href='crear-grupo.php' class='dropdown-item'>➕ Crear Grupo</a>";
-                echo "<a href='mis-estudiantes.php' class='dropdown-item'>👥 Mis Estudiantes</a>";
-                echo "<a href='reportes.php' class='dropdown-item'>📊 Reportes</a>";
-
-            } elseif ($grupo['rol'] === 'estudiante') {
-                // Solo opciones generales para estudiantes
-                echo "<a href='mi-perfil.php' class='dropdown-item'>👤 Mi Perfil</a>";
-                echo "<a href='buscar-grupos.php' class='dropdown-item'>🔍 Buscar Grupos</a>";
-                echo "<a href='mis-asistencias.php' class='dropdown-item'>📊 Mis Asistencias</a>";
-                echo "<a href='horarios.php' class='dropdown-item'>🕒 Mis Horarios</a>";
-
-            } elseif ($grupo['rol'] === 'admin') {
-                echo "<a href='admin-dashboard.php' class='dropdown-item'>📊 Panel de Control</a>";
-                echo "<a href='manage-users.php' class='dropdown-item'>👥 Gestionar Usuarios</a>";
-                echo "<a href='manage-groups.php' class='dropdown-item'>📚 Gestionar Grupos</a>";
-                echo "<a href='system-reports.php' class='dropdown-item'>📈 Reportes del Sistema</a>";
-            }
-
-            echo "<div class='dropdown-divider'></div>";
-            echo "<a href='configuracion.php' class='dropdown-item'>⚙️ Configuración</a>";
-            echo "<a href='ayuda.php' class='dropdown-item'>❓ Ayuda</a>";
-            echo "<div class='dropdown-divider'></div>";
             echo "<a href='logout.php' class='dropdown-item' style='color: #dc3545;'>🚪 Cerrar Sesión</a>";
-
             echo "</div>";
             echo "</div>";
             echo "</div>";

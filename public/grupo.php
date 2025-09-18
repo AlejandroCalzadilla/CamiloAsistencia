@@ -5,6 +5,7 @@ require_once __DIR__ . '/../src/Model/GrupoModel.php';
 require_once __DIR__ . '/../src/View/GrupoView.php';
 require_once __DIR__ . '/../src/Conexion/Conexion.php';
 require_once __DIR__ . '/../src/Controller/GrupoController.php';   
+require_once __DIR__ . '/../src/Model/InscripcionModel.php';
 
 session_start();
 // Crear el usuario desde la sesión
@@ -13,7 +14,8 @@ $db = Conexion::getInstance();
 
 $grupo = new GrupoModel($db);
 $grupoView = new GrupoView($grupo);
-$grupocontroler = new GrupoController($grupo, $grupoView);
+$inscripcionModel = new InscripcionModel($db);
+$grupocontroler = new GrupoController($grupo, $grupoView, $inscripcionModel);
 
 // Mostrar mensaje de bienvenida si viene del login
 if (isset($_GET['login']) && $_GET['login'] === 'success') {
