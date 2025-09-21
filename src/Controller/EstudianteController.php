@@ -18,84 +18,93 @@ class EstudianteController
                     $this->crearEstudiante();
                     break;
                 case 'actualizar':
-                    if (!empty($_POST['codigo']) && !empty($_POST['ci']) && !empty($_POST['nombres']) && !empty($_POST['apellidos']) && !empty($_POST['estado']) && !empty($_POST['usuario_id'])) {
-                        $this->model->actualizar([
-                            'codigo' => $_POST['codigo'],
-                            'ci' => $_POST['ci'],
-                            'nombres' => $_POST['nombres'],
-                            'apellidos' => $_POST['apellidos'],
-                            'estado' => $_POST['estado'],
-                            'genero' => $_POST['genero'] ?? '',
-                            'usuario_id' => $_POST['usuario_id']
-                        ]);
-                        $this->view->showSuccessMessage("Estudiante actualizado correctamente");
-                    }
+                    $this->editarEstudiante($_POST['codigo'] ?? '');
                     break;
                 case 'eliminar':
-                    if (!empty($_POST['codigo'])) {
-                        $this->model->eliminar($_POST['codigo']);
-                        $this->view->showSuccessMessage("Estudiante eliminado correctamente");
-                    }
+                    $this->eliminarEstudiante($_POST['codigo'] ?? '');
                     break;
                 default:
                     $this->view->showErrorMessage("Evento no soportado");
                     break;
             }
+        } else {
+            $this->view->render();
         }
-        $estudiantes = $this->model->obtenerTodos();
-        $this->view->render($estudiantes);
+
     }
 
 
 
-    public function listarEstudiantes()
-    {
-        $estudiantes = $this->model->obtenerTodos();
-        $this->view->render($estudiantes);
-    }
-
-
-    
 
     public function crearEstudiante()
     {
         if (!empty($_POST['codigo']) && !empty($_POST['ci']) && !empty($_POST['nombres']) && !empty($_POST['apellidos']) && !empty($_POST['estado']) && !empty($_POST['usuario_id'])) {
-            $this->model->crear([
-                'codigo' => $_POST['codigo'],
-                'ci' => $_POST['ci'],
-                'nombres' => $_POST['nombres'],
-                'apellidos' => $_POST['apellidos'],
-                'estado' => $_POST['estado'],
-                'genero' => $_POST['genero'] ?? '',
-                'usuario_id' => $_POST['usuario_id']
-            ]);
-            $this->view->showSuccessMessage("Estudiante creado correctamente");
-            $this->view->render();
-        } else {
-            $this->view->showErrorMessage("Todos los campos son obligatorios");
-            $this->view->render();
+            // llamar al modelo para crear el estudiante
+            $resultado = $this->model->crear(
+                [
+                    'codigo' => $_POST['codigo'],
+                    'ci' => $_POST['ci'],
+                    'nombres' => $_POST['nombres'],
+                    'apellidos' => $_POST['apellidos'],
+                    'estado' => $_POST['estado'],
+                    'genero' => $_POST['genero'] ?? '',
+                    'usuario_id' => $_POST['usuario_id']
+                ]
+            );
+            if ($resultado['success']) {
+                $this->view->showSuccessMessage($resultado['mensaje']);
+                return $this->view->render();
+            } else {
+                $this->view->showErrorMessage($resultado['mensaje']);
+                return $this->view->render();
+            }
         }
-
+        $this->view->showErrorMessage("Datos incompletos para crear estudiante");
+        return $this->view->render();
     }
 
 
     public function editarEstudiante($codigo)
     {
-        $estudiante = $this->model->obtenerPorCodigo($codigo);
-        if ($estudiante) {
-            $this->view->renderEditForm($estudiante);
-        } else {
-            $this->view->showErrorMessage("Estudiante no encontrado");
-            $this->listarEstudiantes();
+        if (!empty($codigo) && !empty($_POST['ci']) && !empty($_POST['nombres']) && !empty($_POST['apellidos']) && !empty($_POST['estado']) && !empty($_POST['usuario_id'])) {
+            $resultado = $this->model->actualizar(
+                [
+                    'codigo' => $codigo,
+                    'ci' => $_POST['ci'],
+                    'nombres' => $_POST['nombres'],
+                    'apellidos' => $_POST['apellidos'],
+                    'estado' => $_POST['estado'],
+                    'genero' => $_POST['genero'] ?? '',
+                    'usuario_id' => $_POST['usuario_id']
+                ]
+            );
+            if ($resultado['success']) {
+                $this->view->showSuccessMessage($resultado['mensaje']);
+                return $this->view->render();
+            } else {
+                $this->view->showErrorMessage($resultado['mensaje']);
+                return $this->view->render();
+            }
         }
+        $this->view->showErrorMessage("Datos incompletos para actualizar estudiante");
+        return $this->view->render();
     }
 
 
     public function eliminarEstudiante($codigo)
     {
-        $this->model->eliminar($codigo);
-        $this->view->showSuccessMessage("Estudiante eliminado correctamente");
-        return $this->view->render();
-    }
+        if (empty($codigo)) {
+            $this->view->showErrorMessage("Código de estudiante requerido");
+            return $this->view->render();
+        }
+        $respuesta = $this->model->eliminar($codigo);
+        if (!$respuesta['success']) {
+            $this->view->showErrorMessage($respuesta['mensaje']);
+            return $this->view->render();
+        } else {
+            $this->view->showSuccessMessage($respuesta['mensaje']);
+            return $this->view->render();
+        }
 
+    }
 }

@@ -1,31 +1,42 @@
 <?php
 
-class ProfesorView{
+class ProfesorView
+{
+
+  private $model;
+  private $message = '';
+  private $messageType = '';
+  public function __construct(ProfesorModel $model)
+  {
+    $this->model = $model;
+  }
+
+  public function showSuccessMessage($message)
+  {
+    $this->message = $message;
+    $this->messageType = 'success';
+  }
+
+  public function showErrorMessage($message)
+  {
+    $this->message = $message;
+    $this->messageType = 'error';
+  }
 
 
-   private $model;
+  public function render()
+  {
+    $datos = $this->model->obtener();
+    $profesores = $datos['profesores'];
+    $usuariosLibres = $datos['usuarios_libres'];
 
-
-
-   public function __construct(ProfesorModel $model){
-
-     $this->model=$model;
-
-   }
-
-
-
-  public function render($profesores = null, $message = '', $messageType = ''){
-    if ($profesores === null) {
-      $profesores = $this->model->obtener();
-    }
-    $usuariosLibres = $this->model->obtenerUsuariosLibres();
+    // print("Usuarios libres: " . implode(", ", array_column($usuariosLibres, 'nombre')));
 
     echo "<!DOCTYPE html><html><head><title>Profesores</title></head><body>";
     echo "<h2>Profesores</h2>";
-    if ($message) {
-      $class = $messageType === 'success' ? 'success' : 'error';
-      echo "<div class='$class'>{$message}</div>";
+    if ($this->message) {
+      $class = $this->messageType === 'success' ? 'success' : 'error';
+      echo "<div class='$class'>{$this->message}</div>";
     }
     // Formulario de creación
     echo "<form method='POST'>
@@ -60,10 +71,11 @@ class ProfesorView{
       echo "</select></td>";
       echo "<td><select name='usuario_id' required>";
       // Mostrar el usuario actual
-      echo "<option value='{$p['usuario_id']}' selected>Usuario actual ({$p['usuario_id']})</option>";
+      echo "<option value='{$p['usuario_id']}' selected>Usuario actual ({$p['usuario_nombre']})</option>";
       // Mostrar los usuarios libres
       foreach ($usuariosLibres as $u) {
         if ($u['id'] != $p['usuario_id']) {
+
           echo "<option value='{$u['id']}'>{$u['nombre']}</option>";
         }
       }

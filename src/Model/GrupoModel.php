@@ -13,10 +13,6 @@ class GrupoModel
         $this->db = $db;
     }
 
-    // Setters
-   
-
-    // Método para crear un nuevo grupo
     public function crear($data)
     {
         try {
@@ -410,30 +406,5 @@ class GrupoModel
         }
 
         return $errores;
-    }
-
-    // Método para buscar grupos por nombre
-    public function buscarPorNombre($nombre)
-    {
-        try {
-            $sql = "SELECT 
-                        g.id,
-                        g.nombre as grupo_nombre,
-                        g.capacidad_maxima,
-                        g.capacidad_actual,
-                        m.nombre as materia_nombre,
-                        p.nombres as profesor_nombres,
-                        p.apellidos as profesor_apellidos,
-                        p.codigo as profesor_codigo
-                    FROM grupo g
-                    INNER JOIN materia m ON g.materia_id = m.id
-                    INNER JOIN profesor p ON g.profesor_codigo = p.codigo
-                    WHERE g.nombre ILIKE ?
-                    ORDER BY g.nombre";
-            return $this->db->fetchAll($sql, ['%' . $nombre . '%']);
-        } catch (Exception $e) {
-            error_log("Error en GrupoModel::buscarPorNombre: " . $e->getMessage());
-            return [];
-        }
     }
 }

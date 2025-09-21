@@ -58,17 +58,7 @@ class EstudianteModel
     public function crear($data)
     {
 
-        // Validaciones
-        if (
-            empty($data['codigo']) || empty($data['ci']) || empty($data['nombres']) ||
-            empty($data['apellidos']) || empty($data['estado']) || empty($data['usuario_id'])
-        ) {
-            return [
-                'success' => false,
-                'mensaje' => 'Todos los campos obligatorios deben ser completados'
-            ];
-        }
-        // Verificar que el código no exista
+      
         $existeCodigo = $this->db->fetch("SELECT codigo FROM estudiante WHERE codigo = ?", [$data['codigo']]);
         if ($existeCodigo) {
             return [
