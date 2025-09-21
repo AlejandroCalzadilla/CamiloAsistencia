@@ -21,7 +21,7 @@ $db = Conexion::getInstance();
 
 $claseModel = new ClaseModel($db);
 $asistenciaModel = new AsistenciaModel($db);
-$view = new ClaseView($claseModel);
+$view = new ClaseView($claseModel,$asistenciaModel);
 // 3. Crear el Controlador e inyectar tanto el Modelo como la Vista
 $controller = new ClaseController($claseModel, $asistenciaModel, $view);
 

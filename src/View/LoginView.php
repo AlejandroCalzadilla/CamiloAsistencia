@@ -26,6 +26,13 @@ class LoginView implements View
         $this->messageType = 'success';
     }
 
+
+    public function showMessage($message)
+    {
+        $this->message = $message;
+        $this->messageType = 'success';
+    }
+
     public function showErrorMessage($message)
     {
         $this->message = $message;

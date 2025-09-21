@@ -6,12 +6,20 @@ class MateriaView {
         $this->model = $model;
     }
 
-    public function render($materias = null, $message = '') {
-        if ($materias === null) {
-            $materias = $this->model->obtener();
+    public function showMessage($message) {
+        if ($message) {
+            echo "<p style='color: green;'>$message</p>";
         }
+    }
+
+    public function render() {
+       
+
+        //actuializa la vista con los datos del modelo s
+        $materias = $this->model->obtener();
+        
         echo "<h2>Materias</h2>";
-        if ($message) echo "<p style='color:green;'>$message</p>";
+       
         echo "<form method='POST'>
                 <input type='text' name='nombre' placeholder='Nueva materia' required>
                 <button type='submit' name='evento' value='crear'>Crear</button>

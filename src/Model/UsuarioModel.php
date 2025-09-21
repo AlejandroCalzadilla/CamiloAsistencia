@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../Conexion/Conexion.php';
 
-class UsuarioModel {
+class UsuarioModel
+{
     private $id;
     private $nombre;
     private $contrasena;
@@ -10,25 +11,29 @@ class UsuarioModel {
     private $actualizado_en;
     private $db;
 
-    public function __construct(Conexion $db) {
+    public function __construct(Conexion $db)
+    {
         $this->db = $db;
     }
 
     // Getters
 
-    public function obtenerTodos() {
+    public function obtenerTodos()
+    {
         $sql = "SELECT id, nombre, creado_en, actualizado_en FROM usuario ORDER BY nombre ASC";
         return $this->db->fetchAll($sql);
     }
 
     // Crear usuario
-    public function crear($nombre, $contrasena) {
+    public function crear($nombre, $contrasena)
+    {
         $sql = "INSERT INTO usuario (nombre, contrasena, creado_en, actualizado_en) VALUES (?, ?, NOW(), NOW())";
         return $this->db->query($sql, [$nombre, $contrasena]);
     }
 
     // Editar usuario
-    public function editar($id, $nombre, $contrasena = null) {
+    public function editar($id, $nombre, $contrasena = null)
+    {
         if ($contrasena) {
             $sql = "UPDATE usuario SET nombre = ?, contrasena = ?, actualizado_en = NOW() WHERE id = ?";
             return $this->db->query($sql, [$nombre, $contrasena, $id]);
@@ -38,56 +43,68 @@ class UsuarioModel {
         }
     }
 
+
     // Eliminar usuario
-    public function eliminar($id) {
-        $sql = "DELETE FROM usuario WHERE id = ?";
-        return $this->db->query($sql, [$id]);
+    public function eliminar($id)
+    {
+      
+            $referencias = $this->verificarReferenciasUsuario($id);
+            if (!empty($referencias)) {
+                return [
+                    'success' => false,
+                    'mensaje' => 'No se puede eliminar el usuario porque tiene referencias en: ' . implode(', ', $referencias)
+                ];
+            }
+            $sql = "DELETE FROM usuario WHERE id = ?";
+            $this->db->query($sql, [$id]);
+            return [
+                'success' => true,
+                'mensaje' => 'Usuario eliminado correctamente'
+            ];
     }
-   
+
+    // Método auxiliar para verificar referencias
+    private function verificarReferenciasUsuario($usuarioId)
+    {
+        $referencias = [];
+        // Verificar si es profesor
+        $sqlProfesor = "SELECT COUNT(*) as count FROM profesor WHERE usuario_id = ?";
+        $profesor = $this->db->fetch($sqlProfesor, [$usuarioId]);
+        if ($profesor && $profesor['count'] > 0) {
+            $referencias[] = 'Profesor';
+        }
+
+        // Verificar si es estudiante
+        $sqlEstudiante = "SELECT COUNT(*) as count FROM estudiante WHERE usuario_id = ?";
+        $estudiante = $this->db->fetch($sqlEstudiante, [$usuarioId]);
+        if ($estudiante && $estudiante['count'] > 0) {
+            $referencias[] = 'Estudiante';
+        }
+
+        return $referencias;
+    }
+
+
+
     // Método para validar login con consulta a la base de datos
-    public function validarLogin($nombre, $contrasena) {
-        try {
-            // Buscar usuario en la base de datos
-           $sql = "SELECT id, nombre, creado_en, actualizado_en 
+    public function validarLogin($nombre, $contrasena)
+    {
+        $sql = "SELECT id, nombre, creado_en, actualizado_en 
                     FROM usuario 
                     WHERE nombre = ? AND contrasena = ? 
                     LIMIT 1";
-            
-            $usuario = $this->db->fetch($sql, [$nombre, $contrasena]);   
-            if ($usuario) {  
-                session_start();
-                $rol = $this->determinarRolUsuario($usuario['id']);
-                $_SESSION['usuario_logueado'] = $usuario + ['rol' => $rol];
-                return $usuario;
-            }
-            
-            return null;
-        } catch (Exception $e) {
-            // En caso de error de conexión, log el error y retornar false
-            error_log("Error en validarLogin: " . $e->getMessage());
-            return null;
+
+        $usuario = $this->db->fetch($sql, [$nombre, $contrasena]);
+        if ($usuario) {
+            session_start();
+            $rol = $this->determinarRolUsuario($usuario['id']);
+            $_SESSION['usuario_logueado'] = $usuario + ['rol' => $rol];
+            return $usuario;
         }
+        return null;
     }
 
-
-
-    private function verificarContrasena($contrasena, $hashAlmacenado) {
-        return $contrasena === $hashAlmacenado;
-    }
-
-    // Método para obtener todos los datos (sin contraseña)
-    public function mostrar() {
-        return [
-            'id' => $this->id,
-            'nombre' => $this->nombre,
-            'creado_en' => $this->creado_en,
-            'actualizado_en' => $this->actualizado_en
-        ];
-    }
-
-
-
-    private   function determinarRolUsuario($usuarioId)
+    private function determinarRolUsuario($usuarioId)
     {
         // Buscar en tabla profesor
         $sqlProfesor = "SELECT codigo, nombres, apellidos, 'profesor' as rol 
@@ -109,5 +126,5 @@ class UsuarioModel {
         }
         return "admin";
     }
-    
+
 }

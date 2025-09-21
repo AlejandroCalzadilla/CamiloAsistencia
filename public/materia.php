@@ -10,9 +10,15 @@ session_start();
 $usuarioData = $_SESSION['usuario_logueado'];
 $db = Conexion::getInstance();
 
+//modelo 
 $materia = new MateriaModel($db);
+
+// vista -> modelo
 $grupoView = new MateriaView($materia);
+
+// controlador -> modelo, vista
 $matericontroller = new MateriaController($materia, $grupoView);
+
 $matericontroller->handleRequest();
 
 ?>

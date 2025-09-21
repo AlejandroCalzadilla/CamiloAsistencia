@@ -1,38 +1,72 @@
 <?php
-class MateriaController {
+class MateriaController
+{
     private $model;
     private $view;
 
-    public function __construct(MateriaModel $model, MateriaView $view) {
+    public function __construct(MateriaModel $model, MateriaView $view)
+    {
         $this->model = $model;
         $this->view = $view;
     }
 
-    public function handleRequest() {
+    public function handleRequest()
+    {
         $message = '';
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['evento'])) {
             switch ($_POST['evento']) {
                 case 'crear':
-                    if (!empty($_POST['nombre'])) {
-                        $this->model->crear($_POST['nombre']);
-                        $message = 'Materia creada';
-                    }
+                    $this->crearMateria($_POST['nombre']);
                     break;
                 case 'editar':
                     if (!empty($_POST['nombre']) && !empty($_POST['id'])) {
-                        $this->model->editar($_POST['nombre'], $_POST['id']);
-                        $message = 'Materia editada';
+                        $this->editarMateria($_POST['id'], $_POST['nombre']);
                     }
                     break;
                 case 'eliminar':
                     if (!empty($_POST['id'])) {
-                        $this->model->eliminar($_POST['id']);
-                        $message = 'Materia eliminada';
+                        $this->eliminarMateria($_POST['id']);
                     }
                     break;
             }
+        } else {
+            $this->view->render();
         }
-        $materias = $this->model->obtener();
-        $this->view->render($materias, $message);
     }
+
+
+
+    public function crearMateria($nombre)
+    {
+        if (!empty($nombre)) {
+            $this->model->crear($nombre);
+        }
+        $this->view->showMessage('Materia creada');
+        return $this->view->render();
+    }
+
+
+    public function editarMateria($id, $nombre)
+    {
+        if (!empty($id) && !empty($nombre)) {
+            $this->model->editar($nombre, $id);
+        }
+        $this->view->showMessage('Materia editada');
+        return $this->view->render();
+    }
+
+
+    public function eliminarMateria($id)
+    {
+        $resultado = $this->model->eliminar($id);
+        if (!$resultado['success']) {
+            $this->view->showMessage($resultado['mensaje']);
+            return $this->view->render();
+        } else {
+            $this->view->showMessage('Materia eliminada');
+            return $this->view->render();
+        }
+    }
+
+
 }

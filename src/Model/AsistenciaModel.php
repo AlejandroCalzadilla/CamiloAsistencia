@@ -21,6 +21,137 @@ class AsistenciaModel
 
 
 
+    public function obtener( $grupo_id)
+    {
+  
+        $usuarioData = $_SESSION['usuario_logueado'];
+        if (isset($usuarioData)) {
+            $usuarioId = $usuarioData['id'];
+            $rol = $usuarioData['rol'] ?? 'sin_rol';
+        }
+
+        try {
+            if ($rol === 'profesor') {
+                // Consulta para profesor: obtener asistencias de todas las clases de sus grupos
+                $sql = "SELECT 
+                        a.id as asistencia_id,
+                        a.fecha as fecha_asistencia,
+                        a.hora_inicio,
+                        a.hora_fin,
+                        a.tipo,
+                        c.id as clase_id,
+                        c.dia as dia_clase,
+                        c.fecha as fecha_creacion_clase,
+                        c.qr,
+                        g.id as grupo_id,
+                        g.nombre as grupo_nombre,
+                        m.nombre as materia_nombre,
+                        e.codigo as estudiante_codigo,
+                        e.nombres as estudiante_nombres,
+                        e.apellidos as estudiante_apellidos,
+                        COUNT(*) OVER (PARTITION BY c.id) as total_estudiantes_clase,
+                        SUM(CASE WHEN a.tipo = 'presente' THEN 1 ELSE 0 END) OVER (PARTITION BY c.id) as presentes,
+                        SUM(CASE WHEN a.tipo = 'retraso' THEN 1 ELSE 0 END) OVER (PARTITION BY c.id) as retrasos,
+                        SUM(CASE WHEN a.tipo = 'ausente' THEN 1 ELSE 0 END) OVER (PARTITION BY c.id) as ausentes
+                    FROM asistencia a
+                    INNER JOIN clases c ON a.clases_id = c.id
+                    INNER JOIN grupo g ON c.grupo_id = g.id
+                    INNER JOIN materia m ON g.materia_id = m.id
+                    INNER JOIN estudiante e ON a.estudiante_codigo = e.codigo
+                    INNER JOIN profesor p ON g.profesor_codigo = p.codigo
+                    WHERE p.usuario_id = ?";
+
+                $params = [$usuarioId];
+
+                // Si se especifica un grupo, filtrar por ese grupo
+                if ($grupo_id) {
+                    $sql .= " AND g.id = ?";
+                    $params[] = $grupo_id;
+                }
+
+                $sql .= " ORDER BY c.fecha DESC, a.fecha DESC, e.apellidos, e.nombres";
+
+                return $this->db->fetchAll($sql, $params);
+
+            } elseif ($rol === 'estudiante') {
+                // Consulta para estudiante: obtener sus propias asistencias
+                $sqlEstudiante = "SELECT codigo FROM estudiante WHERE usuario_id = ?";
+                $estudiante = $this->db->fetch($sqlEstudiante, [$usuarioId]);
+
+                if (!$estudiante) {
+                    return [
+                        'success' => false,
+                        'mensaje' => 'No se encontró información del estudiante'
+                    ];
+                }
+
+                $estudiante_codigo = $estudiante['codigo'];
+
+                $sql = "SELECT 
+                        a.id as asistencia_id,
+                        a.fecha as fecha_asistencia,
+                        a.hora_inicio,
+                        a.hora_fin,
+                        a.tipo,
+                        c.id as clase_id,
+                        c.dia as dia_clase,
+                        c.fecha as fecha_creacion_clase,
+                        c.qr,
+                        g.id as grupo_id,
+                        g.nombre as grupo_nombre,
+                        m.nombre as materia_nombre,
+                        p.nombres as profesor_nombres,
+                        p.apellidos as profesor_apellidos,
+                        -- Estadísticas del estudiante
+                        (SELECT COUNT(*) 
+                         FROM asistencia a2 
+                         INNER JOIN clases c2 ON a2.clases_id = c2.id 
+                         WHERE a2.estudiante_codigo = ? AND c2.grupo_id = g.id) as total_clases_grupo,
+                        (SELECT COUNT(*) 
+                         FROM asistencia a2 
+                         INNER JOIN clases c2 ON a2.clases_id = c2.id 
+                         WHERE a2.estudiante_codigo = ? AND a2.tipo = 'presente' AND c2.grupo_id = g.id) as clases_presente,
+                        (SELECT COUNT(*) 
+                         FROM asistencia a2 
+                         INNER JOIN clases c2 ON a2.clases_id = c2.id 
+                         WHERE a2.estudiante_codigo = ? AND a2.tipo = 'retraso' AND c2.grupo_id = g.id) as clases_retraso
+                    FROM asistencia a
+                    INNER JOIN clases c ON a.clases_id = c.id
+                    INNER JOIN grupo g ON c.grupo_id = g.id
+                    INNER JOIN materia m ON g.materia_id = m.id
+                    INNER JOIN profesor p ON g.profesor_codigo = p.codigo
+                    WHERE a.estudiante_codigo = ?";
+
+                $params = [$estudiante_codigo, $estudiante_codigo, $estudiante_codigo, $estudiante_codigo];
+
+                // Si se especifica un grupo, filtrar por ese grupo
+                if ($grupo_id) {
+                    $sql .= " AND g.id = ?";
+                    $params[] = $grupo_id;
+                }
+
+                $sql .= " ORDER BY c.fecha DESC, a.fecha DESC";
+
+                return $this->db->fetchAll($sql, $params);
+
+            } else {
+                return [
+                    'success' => false,
+                    'mensaje' => 'Rol de usuario no válido'
+                ];
+            }
+
+        } catch (Exception $e) {
+            error_log("Error al obtener asistencias: " . $e->getMessage());
+            return [
+                'success' => false,
+                'mensaje' => 'Error al consultar asistencias'
+            ];
+        }
+    }
+
+
+
 
     public function marcarPresente($usuario_id, $clase_id, $codigo_verificacion)
     {
@@ -92,7 +223,7 @@ class AsistenciaModel
             // Si llega más de 5 minutos tarde o después del fin de clase, permanece ausente
 
             // 8. Solo actualizar si no es ausente
-           if ($nuevo_tipo !== 'ausente') {
+            if ($nuevo_tipo !== 'ausente') {
                 // Solo actualizar el tipo, no las horas
                 $sqlUpdate = "UPDATE asistencia 
                              SET tipo = ?
@@ -118,7 +249,7 @@ class AsistenciaModel
                         'mensaje' => 'Error al actualizar la asistencia'
                     ];
                 }
-            }else {
+            } else {
                 // Llegó muy tarde, no se actualiza
                 $minutos_retraso = round(($timestamp_actual - $timestamp_inicio) / 60);
                 return [

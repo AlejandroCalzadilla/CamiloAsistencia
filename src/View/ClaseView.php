@@ -5,9 +5,14 @@ class ClaseView
     private $message = '';
     private $messageType = '';
 
-    public function __construct(ClaseModel $claseModel)
+    private $asistenciaModel;
+
+
+
+    public function __construct(ClaseModel $claseModel, AsistenciaModel $asistenciaModel)
     {
         $this->claseModel = $claseModel;
+        $this->asistenciaModel = $asistenciaModel;
     }
 
     public function showSuccessMessage($message)
@@ -25,7 +30,7 @@ class ClaseView
     public function render($grupo_id)
     {
         $data = $this->claseModel->mostrar($grupo_id);
-
+        $asistenciaData = $this->asistenciaModel->obtener($grupo_id);
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Clases - Sistema de Asistencia</title>";
         echo "<style>";
@@ -89,7 +94,7 @@ class ClaseView
         echo ".qr-codigo { font-family: monospace; font-size: 14px; background: #f8f9fa; padding: 8px; border-radius: 4px; margin: 5px 0; }";
         echo "</style>";
 
-       
+
         echo "<script>";
         echo "
         // Función para mostrar/ocultar formulario de crear clase
@@ -217,6 +222,13 @@ class ClaseView
             const modal = document.querySelector('[style*=\"position: fixed\"]');
             if (modal) modal.remove();
         }
+            // Función para mostrar/ocultar detalle de asistencias
+function toggleDetalleAsistencias(claseId) {
+    const detalle = document.getElementById('detalle-' + claseId);
+    if (detalle) {
+        detalle.style.display = detalle.style.display === 'none' ? 'block' : 'none';
+    }
+}
 
         // Verificar que el DOM esté cargado
         document.addEventListener('DOMContentLoaded', function() {
@@ -226,7 +238,10 @@ class ClaseView
                 registrarAsistencia: typeof registrarAsistencia
             });
         });
+        
         ";
+
+
         echo "</script>";
 
         echo "</head><body>";
@@ -274,31 +289,31 @@ class ClaseView
             echo "<p><strong>Grupo:</strong> {$data['grupo']['grupo_nombre']}</p>";
             echo "<p><strong>Materia:</strong> {$data['grupo']['materia_nombre']}</p>";
             echo "<p><strong>Profesor:</strong> {$data['grupo']['profesor_nombres']} {$data['grupo']['profesor_apellidos']}</p>";
-            
-            
+
+
             echo "</div>";
         }
 
         // Formulario para crear clase (solo para profesores)
-          if ($data['rol'] === 'profesor') {
+        if ($data['rol'] === 'profesor') {
             echo "<div id='crear-clase-form' class='crear-clase-form'>";
             echo "<h4>➕ Crear Nueva Clase</h4>";
-            
+
             echo "<div class='form-group'>";
             echo "<label for='dia-clase'>Fecha de la clase:</label>";
             echo "<input type='date' id='dia-clase' class='form-control' value='" . date('Y-m-d') . "'>";
             echo "</div>";
-            
+
             echo "<div class='form-group'>";
             echo "<label for='hora-inicio'>Hora de inicio:</label>";
             echo "<input type='time' id='hora-inicio' class='form-control' value='" . date('H:i') . "'>";
             echo "</div>";
-            
+
             echo "<div class='form-group'>";
             echo "<label for='hora-fin'>Hora de fin:</label>";
             echo "<input type='time' id='hora-fin' class='form-control' value='" . date('H:i', strtotime('+2 hours')) . "'>";
             echo "</div>";
-            
+
             echo "<button id='btn-crear-clase' class='btn-crear-clase' onclick='crearClase()'>🎓 Crear Clase</button>";
             echo "<button class='btn btn-secondary' onclick='mostrarFormularioCrearClase()' style='margin-left: 10px;'>❌ Cancelar</button>";
             echo "</div>";
@@ -322,6 +337,9 @@ class ClaseView
             // Mostrar lista de clases
             echo "<h3>📅 Clases Registradas (" . count($data['clases']) . ")</h3>";
 
+
+
+
             // Botón para crear nueva clase (solo para profesores)
             if ($data['rol'] === 'profesor') {
                 echo "<div style='margin-bottom: 20px;'>";
@@ -329,17 +347,65 @@ class ClaseView
                 echo "</div>";
             }
 
+
+            $asistenciasPorClase = [];
+            $miAsistenciaPorClase = [];
+            if (is_array($asistenciaData)) {
+                $rolfor = $data['rol'];
+                foreach ($asistenciaData as $asistencia) {
+                    $clase_id = $asistencia['clase_id'];
+                    echo "<script>";
+                    echo "console.log('clase_id', " . json_encode($clase_id) . ");";
+                    echo "</script>";
+                    if ($rolfor=== 'profesor') {
+
+                        if (!isset($asistenciasPorClase[$clase_id])) {
+                            $asistenciasPorClase[$clase_id] = [];
+                        }
+
+                        $asistenciasPorClase[$clase_id][] = $asistencia;
+                    } elseif ($rolfor === 'estudiante') {
+                        // Para estudiante: solo su asistencia por clase
+                        $miAsistenciaPorClase[$clase_id] = $asistencia;
+                    }
+                }
+            }
+            echo "<script>";
+            echo "console.log('miasistenciaporclase', " . json_encode($asistenciaData) . ");";
+            echo "</script>";
+
             foreach ($data['clases'] as $clase) {
                 // Determinar el estilo de la tarjeta según la asistencia
+                echo "<script>";
+                echo "console.log('Renderizando clase ID: {$clase['id']} para rol: {$data['rol']}');";
+                echo "</script>";
                 $cardClass = "clase-card";
                 $badgeClass = "";
                 $badgeText = "";
 
                 if ($data['rol'] === 'estudiante') {
-                    if ($clase['mi_asistencia'] == 1) {
-                        $cardClass .= " asistencia-presente";
-                        $badgeClass = "badge-presente";
-                        $badgeText = "✅ Presente";
+                    // Usar datos de asistencia reales
+                    $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+
+                    if ($miAsistencia) {
+                        switch ($miAsistencia['tipo']) {
+                            case 'presente':
+                                $cardClass .= " asistencia-presente";
+                                $badgeClass = "badge-presente";
+                                $badgeText = "✅ Presente";
+                                break;
+                            case 'retraso':
+                                $cardClass .= " asistencia-presente";
+                                $badgeClass = "badge-presente";
+                                $badgeText = "⏰ Retraso";
+                                break;
+                            case 'ausente':
+                            default:
+                                $cardClass .= " asistencia-ausente";
+                                $badgeClass = "badge-ausente";
+                                $badgeText = "❌ Ausente";
+                                break;
+                        }
                     } else {
                         $cardClass .= " asistencia-ausente";
                         $badgeClass = "badge-ausente";
@@ -358,15 +424,66 @@ class ClaseView
                 echo "</h4>";
                 echo "<div class='clase-meta'>";
                 echo "<p><strong>Fecha y hora:</strong> " . date('d/m/Y H:i:s', strtotime($clase['fecha'])) . "</p>";
-               /*  echo "<p><strong>Asistencias registradas:</strong> {$clase['asistencias_registradas']} estudiantes</p>"; */
+                echo "<script>";
+                echo "console.log('llega aca'); rol = '{$data['rol']}'; asistenciasPorClase = " . json_encode($asistenciasPorClase) . ";";
+                echo "</script>";
+                // Para profesor: mostrar lista de asistencias
+                if ($data['rol'] === 'profesor' && isset($asistenciasPorClase[$clase['id']])) {
+
+                    $asistencias = $asistenciasPorClase[$clase['id']];
+                    $totalEstudiantes = count($asistencias);
+                    $presentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'presente'));
+                    $retrasos = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'retraso'));
+                    $ausentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'ausente'));
+
+                    echo "<div class='asistencias-resumen' style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;'>";
+                    echo "<h5>📊 Resumen de Asistencias</h5>";
+                    echo "<p><strong>Total estudiantes:</strong> $totalEstudiantes</p>";
+                    echo "<p><strong>Presentes:</strong> <span style='color: #28a745;'>$presentes</span> | ";
+                    echo "<strong>Retrasos:</strong> <span style='color: #ffc107;'>$retrasos</span> | ";
+                    echo "<strong>Ausentes:</strong> <span style='color: #dc3545;'>$ausentes</span></p>";
+
+
+
+                    // Botón para ver detalle
+                    echo "<button onclick='toggleDetalleAsistencias({$clase['id']})' class='btn btn-sm' style='font-size: 0.8em;'>👁️ Ver Detalle</button>";
+
+                    // Lista detallada (inicialmente oculta)
+                    echo "<div id='detalle-{$clase['id']}' style='display: none; margin-top: 10px;'>";
+                    echo "<h6>Lista de Estudiantes:</h6>";
+                    echo "<div style='max-height: 200px; overflow-y: auto;'>";
+
+                    foreach ($asistencias as $asistencia) {
+                        $iconoTipo = match ($asistencia['tipo']) {
+                            'presente' => '✅',
+                            'retraso' => '⏰',
+                            'ausente' => '❌',
+                            default => '❓'
+                        };
+
+                        $colorTipo = match ($asistencia['tipo']) {
+                            'presente' => '#28a745',
+                            'retraso' => '#ffc107',
+                            'ausente' => '#dc3545',
+                            default => '#6c757d'
+                        };
+
+                        echo "<div style='display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;'>";
+                        echo "<span>{$asistencia['estudiante_nombres']} {$asistencia['estudiante_apellidos']}</span>";
+                        echo "<span style='color: $colorTipo; font-weight: bold;'>$iconoTipo {$asistencia['tipo']}</span>";
+                        echo "</div>";
+                    }
+
+                    echo "</div>";
+                    echo "</div>";
+                    echo "</div>";
+                }
 
                 // Mostrar código QR si existe
                 if ($clase['qr'] && $data['rol'] === 'profesor') {
                     echo "<div class='qr-code'>";
                     echo "<p><strong>🔗 Código QR:</strong> {$clase['qr']}</p>";
-                    if ($data['rol'] === 'profesor') {
-                        echo "<small>Los estudiantes pueden usar este código para registrar asistencia</small>";
-                    }
+                    echo "<small>Los estudiantes pueden usar este código para registrar asistencia</small>";
                     echo "</div>";
                 }
 
@@ -377,36 +494,31 @@ class ClaseView
 
                 if ($data['rol'] === 'profesor') {
                     // Botones para profesores
-                   
-                   
                     echo "<a href='editar-clase.php?clase_id={$clase['id']}' class='btn btn-warning'>✏️ Editar</a>";
                     echo "<a href='eliminar-clase.php?clase_id={$clase['id']}' class='btn btn-danger' onclick='return confirm(\"¿Estás seguro de eliminar esta clase?\")'>🗑️ Eliminar</a>";
 
                 } elseif ($data['rol'] === 'estudiante') {
-                    // Botones para estudiantes
-                     
-       
-                    // Solo mostrar opción de registrar asistencia si no ha asistido y hay QR
-                    if ($clase['mi_asistencia'] == 0 && $clase['qr']) {
-                        echo "<div class='qr-form'>";
-                        echo "<h5>📱 Registrar Asistencia con Codigo</h5>";
+                    // Para estudiante: verificar si puede marcar asistencia
+                    $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+                    $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
 
-                        // Opción 1: Ingresar código manualmente
+                    if ($puedeMarcar && $clase['qr']) {
+                        echo "<div class='qr-form'>";
+                        echo "<h5>📱 Registrar Asistencia con Código</h5>";
                         echo "<div style='margin-bottom: 15px;'>";
-                        echo "<label><strong>Opción 1: Escribir código </strong></label>";
+                        echo "<label><strong>Escribir código:</strong></label>";
                         echo "<div>";
-                        echo "<input type='text' id='qr_{$clase['id']}' class='qr-input' placeholder='Ingresa código ' maxlength='100'>";
-                        
-                       
+                        echo "<input type='text' id='qr_{$clase['id']}' class='qr-input' placeholder='Ingresa código' maxlength='100'>";
                         echo "<button class='btn btn-success' onclick='registrarAsistencia({$clase['id']}, document.getElementById(\"qr_{$clase['id']}\").value)'>✅ Marcar Asistencia</button>";
                         echo "</div>";
-
-                       
-
                         echo "</div>";
-                    } elseif ($clase['mi_asistencia'] == 1) {
+                        echo "</div>";
+                    } elseif ($miAsistencia && $miAsistencia['tipo'] !== 'ausente') {
                         echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
-                        echo "✅ <strong>Asistencia registrada correctamente</strong>";
+                        echo "✅ <strong>Asistencia registrada como: {$miAsistencia['tipo']}</strong>";
+                        if ($miAsistencia['hora_inicio']) {
+                            echo "<br><small>Hora: {$miAsistencia['hora_inicio']}</small>";
+                        }
                         echo "</div>";
                     }
                 }
@@ -414,9 +526,12 @@ class ClaseView
                 echo "</div>";
                 echo "</div>";
             }
+
+
+
         }
         echo "</div>";
-      
+
         echo "</div>";
 
         echo "</div>";

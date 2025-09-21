@@ -16,38 +16,33 @@ class UsuarioController
 
     }
 
-    // funcion para manejar la solicitud
+    // funcion para manejar los eventos
     public function handleRequest()
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['evento'])) {
             switch ($_POST['evento']) {
                 case 'crear':
-                    if (!empty($_POST['nombre']) && !empty($_POST['contrasena'])) {
-                        $this->model->crear($_POST['nombre'], $_POST['contrasena']);  
-                    }
+                    $this->crear();
                     break;
                 case 'editar':
                     if (!empty($_POST['id']) && !empty($_POST['nombre'])) {
-                        $contrasena = !empty($_POST['contrasena']) ? $_POST['contrasena'] : null;
-                        $this->model->editar($_POST['id'], $_POST['nombre'], $contrasena);
-                        //$this->view->showMessage('Usuario editado');
+                        $this->editar();
                     }
                     break;
                 case 'eliminar':
-                    if (!empty($_POST['id'])) {
-                        $this->model->eliminar($_POST['id']);
-                       // $this->view->showMessage('Usuario eliminado');
-                    }
+                    $this->eliminar();
                     break;
                 case 'login':
                     $this->procesarLogin();
                     break;
                 default:
-                   // $this->view->showMessage("Evento no soportado");
+                    $this->view->showMessage("Evento no soportado");
+                    $this->view->render();
                     break;
             }
+        } else {
+            $this->view->render();
         }
-        $this->view->render();
     }
 
     private function procesarLogin()
@@ -60,34 +55,46 @@ class UsuarioController
                 header('Location: grupo.php?login=success');
                 exit();
             } else {
-                //$this->view->showErrorMessage("Credenciales incorrectas");
+                $this->view->showErrorMessage("Credenciales incorrectas");
+                return $this->view->render();
+
             }
-        } else {
-            //$this->view->showErrorMessage("Por favor complete todos los campos");
         }
     }
 
 
-    public function obtenerTodos()
+
+
+    public function crear()
     {
         $this->model->crear($_POST['nombre'], $_POST['contrasena']);
-        //$this->view->showMessage('Usuario creado');
+        $this->view->showMessage('Usuario creado');
+        return $this->view->render();
 
     }
 
-
     public function editar()
     {
-        $this->model->editar($_POST['id'], $_POST['nombre'], $_POST['contrasena']);
-        //$this->view->showMessage('Usuario editado');
-
+        $contrasena = !empty($_POST['contrasena']) ? $_POST['contrasena'] : null;
+        $this->model->editar($_POST['id'], $_POST['nombre'], $contrasena);
+        $this->view->showMessage('Usuario editado');
+        return $this->view->render();
     }
 
     public function eliminar()
     {
-        $this->model->eliminar($_POST['id']);
-        //$this->view->showMessage('Usuario eliminado');
-
+        if (!isset($_POST['id']) || empty($_POST['id'])) {
+            $this->view->showErrorMessage('ID de usuario no proporcionado');
+            $this->view->render();
+            return;
+        }
+        $resultado = $this->model->eliminar($_POST['id']);
+        if ($resultado['success']) {
+            $this->view->showMessage($resultado['mensaje']);
+        } else {
+            $this->view->showErrorMessage($resultado['mensaje']);
+        }
+        return $this->view->render();
     }
 
 

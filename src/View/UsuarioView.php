@@ -11,6 +11,9 @@ class UsuarioView implements View
         $this->model = $model;
     }
 
+    public function showErrorMessage($msg) {
+        $this->message = $msg;
+    }
     public function showMessage($msg) {
         $this->message = $msg;
     }

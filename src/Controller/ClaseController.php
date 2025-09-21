@@ -55,7 +55,7 @@ class ClaseController
             $clase_id = $resultado['clase_id'];
             $this->asistenciaModel->crearAsistenciasParaClase($clase_id, $grupo_id, $hora_inicio, $hora_fin);
         }
-        echo json_encode($resultado);
+       // echo json_encode($resultado);
     }
 
 
