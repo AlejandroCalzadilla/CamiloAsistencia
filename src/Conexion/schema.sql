@@ -65,7 +65,7 @@ id SERIAL PRIMARY KEY,
 dia DATE NOT NULL,
 hora_inicio TIME,
 hora_fin TIME,
-qr VARCHAR(255),
+codigo VARCHAR(255),
 grupo_id INTEGER NOT NULL,
 FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE 
 );
@@ -125,10 +125,10 @@ INSERT INTO horario (dia, hora_inicio, hora_final, grupo_id) VALUES
 ('Jueves', '16:00', '18:00', 2),
 ('Viernes', '08:00', '10:00', 3);
 
-INSERT INTO clases (dia, qr, grupo_id, hora_inicio, hora_fin) VALUES 
-('2025-09-15', 'QR123ABC', 1, '08:00', '10:00'),
-('2025-09-15', 'QR456DEF', 2, '10:00', '12:00'),
-('2025-09-15', 'QR789GHI', 3, '08:00', '10:00'  );
+INSERT INTO clases (dia, codigo, grupo_id, hora_inicio, hora_fin) VALUES 
+('2025-09-15', '123ABC', 1, '08:00', '10:00'),
+('2025-09-15', '456DEF', 2, '10:00', '12:00'),
+('2025-09-15', '789GHI', 3, '08:00', '10:00'  );
 
 INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) VALUES 
 ('EST001', 1, CURRENT_TIMESTAMP),

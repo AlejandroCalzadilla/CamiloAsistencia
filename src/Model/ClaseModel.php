@@ -5,7 +5,7 @@ class ClaseModel {
     private $id;
     private $dia;
     private $fecha;
-    private $qr;
+    private $codigo;
     private $grupo_id;
     private $db;
 
@@ -63,13 +63,13 @@ class ClaseModel {
                     c.dia,
                     c.hora_inicio,
                     c.hora_fin,
-                    c.qr,
+                    c.codigo,
                     c.grupo_id,
                     COUNT(a.estudiante_codigo) as asistencias_registradas
                 FROM clases c
                 LEFT JOIN asistencia a ON c.id = a.clases_id
                 WHERE c.grupo_id = ?
-                GROUP BY c.id, c.dia, c.hora_inicio, c.hora_fin, c.qr, c.grupo_id
+                GROUP BY c.id, c.dia, c.hora_inicio, c.hora_fin, c.codigo, c.grupo_id
                 ORDER BY c.dia DESC, c.hora_inicio DESC";
         
         return $this->db->fetchAll($sql, [$grupo_id]);
@@ -96,28 +96,28 @@ class ClaseModel {
     }
 
     
-    public function crearClase($dia, $grupo_id, $hora_inicio, $hora_fin, $qr = null) {
+    public function crearClase($dia, $grupo_id, $hora_inicio, $hora_fin, $codigo = null) {
         try {
             // Configurar zona horaria
             date_default_timezone_set('America/La_Paz');
             
-            // Generar código QR único si no se proporciona
-            if (!$qr) {
-                $qr = $this->generarCodigo($grupo_id);
+            // Generar código  único si no se proporciona
+            if (!$codigo) {
+                $codigo = $this->generarCodigo($grupo_id);
             }
             
             // Insertar en la nueva estructura
-            $sql = "INSERT INTO clases (dia, hora_inicio, hora_fin, qr, grupo_id) 
+            $sql = "INSERT INTO clases (dia, hora_inicio, hora_fin, codigo, grupo_id) 
                     VALUES (?, ?, ?, ?, ?)";
             
-            $claseId = $this->db->insert($sql, [$dia, $hora_inicio, $hora_fin, $qr, $grupo_id]);
+            $claseId = $this->db->insert($sql, [$dia, $hora_inicio, $hora_fin, $codigo, $grupo_id]);
             
             if ($claseId) {
                 return [
                     'success' => true,
                     'mensaje' => 'Clase creada exitosamente',
                     'clase_id' => $claseId,
-                    'codigo' => $qr,
+                    'codigo' => $codigo,
                     'hora_inicio' => $hora_inicio,
                     'hora_fin' => $hora_fin
                 ];
@@ -161,7 +161,7 @@ class ClaseModel {
         }
     }
 
-    // Generar código QR único
+    // Generar código  único
     private function generarCodigo($grupo_id) {
         $timestamp = time();
         $random = mt_rand(1000, 9999);

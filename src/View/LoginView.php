@@ -15,10 +15,7 @@ class LoginView implements View
         $this->usuarioModel = new UsuarioModel();
     }
 
-    public function setModel(UsuarioModel $model)
-    {
-        $this->model = $model;
-    }
+    
 
     public function showSuccessMessage($message)
     {
@@ -42,7 +39,7 @@ class LoginView implements View
      
     public function actualizar(){
 
-        $datos="";
+        $datos=$this->model->obtenerTodos();
         $this->render($datos);
     }
 
