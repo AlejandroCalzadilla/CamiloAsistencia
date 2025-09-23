@@ -9,9 +9,9 @@ class GrupoModel
     private $profesor_codigo;
     private $db;
 
-    public function __construct(Conexion $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = new Conexion();
     }
 
     public function mostrar()

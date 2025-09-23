@@ -9,11 +9,11 @@ class GrupoController
     private GrupoView $view;
     private InscripcionModel $inscripcionModel;
 
-    public function __construct(GrupoModel $model, GrupoView $view, InscripcionModel $inscripcionModel)
+    public function __construct()
     {
-        $this->model = $model;
-        $this->view = $view;
-        $this->inscripcionModel = $inscripcionModel;
+        $this->model = new GrupoModel();
+        $this->view = new GrupoView();
+        $this->inscripcionModel = new InscripcionModel();
     }
     public function handleRequest()
     {
@@ -80,7 +80,7 @@ class GrupoController
             }
         }
         else {
-             $this->view->render();
+             $this->view->actualizar();
         }
         
     }
@@ -105,7 +105,7 @@ class GrupoController
         } else {
             $this->view->showErrorMessage($resultado['message']);
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function actualizarGrupo()
@@ -127,7 +127,7 @@ class GrupoController
         } else {
             $this->view->showErrorMessage($resultado['message']);
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function eliminarGrupo()
@@ -142,7 +142,7 @@ class GrupoController
         } else {
             $this->view->showErrorMessage($resultado['message']);
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function agregarInscripcion()
@@ -159,7 +159,7 @@ class GrupoController
         } else {
             $this->view->showErrorMessage($resultado['mensaje']);
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function eliminarInscripcion()
@@ -175,20 +175,20 @@ class GrupoController
             } else {
                 $this->view->showErrorMessage($resultado['mensaje']);
             }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function mostrarFormularioCrear()
     {
         $this->view->setMostrarFormulario(true, 'crear');
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function mostrarFormularioEditar()
     {
         $grupo_id = intval($_POST['grupo_id']);
         $this->view->setMostrarFormulario(true, 'editar', $grupo_id);
-        return $this->view->render();   
+        return $this->view->actualizar();   
     }
  
     public function cancelarFormulario()
@@ -205,7 +205,7 @@ class GrupoController
         } else {
             $this->view->showErrorMessage("No se especificó el grupo");
         }
-         $this->view->render();
+         $this->view->actualizar();
     }
     public function Usuarios()
     {

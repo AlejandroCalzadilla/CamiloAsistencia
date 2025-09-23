@@ -5,9 +5,9 @@ class MateriaModel
     private $nombre;
     private $db;
 
-    public function __construct(Conexion $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = new Conexion();
     }
 
     public function obtener()

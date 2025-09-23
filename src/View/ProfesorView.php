@@ -6,9 +6,9 @@ class ProfesorView
   private $model;
   private $message = '';
   private $messageType = '';
-  public function __construct(ProfesorModel $model)
+  public function __construct()
   {
-    $this->model = $model;
+    $this->model = new ProfesorModel();
   }
 
   public function showSuccessMessage($message)
@@ -23,10 +23,15 @@ class ProfesorView
     $this->messageType = 'error';
   }
 
+    public function actualizar()
+    {
+      $datos = $this->model->obtener();
+      $this->render($datos);
+    }
 
-  public function render()
+  public function render($datos )
   {
-    $datos = $this->model->obtener();
+    
     $profesores = $datos['profesores'];
     $usuariosLibres = $datos['usuarios_libres'];
 

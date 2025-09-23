@@ -4,10 +4,10 @@ class MateriaController
     private $model;
     private $view;
 
-    public function __construct(MateriaModel $model, MateriaView $view)
+    public function __construct()
     {
-        $this->model = $model;
-        $this->view = $view;
+        $this->model = new MateriaModel();
+        $this->view = new MateriaView();
     }
 
     public function handleRequest()
@@ -30,7 +30,7 @@ class MateriaController
                     break;
             }
         } else {
-            $this->view->render();
+            $this->view->actualizar();
         }
     }
 
@@ -42,7 +42,7 @@ class MateriaController
             $this->model->crear($nombre);
         }
         $this->view->showMessage('Materia creada');
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
 
@@ -52,7 +52,7 @@ class MateriaController
             $this->model->editar($nombre, $id);
         }
         $this->view->showMessage('Materia editada');
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
 
@@ -61,10 +61,10 @@ class MateriaController
         $resultado = $this->model->eliminar($id);
         if (!$resultado['success']) {
             $this->view->showMessage($resultado['mensaje']);
-            return $this->view->render();
-        } else {
+            return $this->view->actualizar();
+        } else {    
             $this->view->showMessage('Materia eliminada');
-            return $this->view->render();
+            return $this->view->actualizar();
         }
     }
 

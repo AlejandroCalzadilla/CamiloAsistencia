@@ -7,8 +7,8 @@ class InscripcionModel{
     private $fecha_inscripcion;
     private $db;
 
-    public function __construct(Conexion $db){
-        $this->db = $db; 
+    public function __construct(){
+        $this->db = new Conexion(); 
     }
 
     // Setters

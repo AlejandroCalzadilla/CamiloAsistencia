@@ -9,8 +9,8 @@ class ClaseModel {
     private $grupo_id;
     private $db;
 
-    public function __construct(Conexion $db) {
-        $this->db = $db;
+    public function __construct() {
+        $this->db = new Conexion();
     }
 
     // Método principal para obtener clases de un grupo específico

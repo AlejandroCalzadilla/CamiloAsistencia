@@ -29,6 +29,17 @@ class EstudianteModel
         }
     }
 
+    public function obtenerUsuariosLibres()
+    {
+        $sql = "SELECT id, nombre FROM usuario 
+                    WHERE id NOT IN (
+                        SELECT usuario_id FROM estudiante WHERE usuario_id IS NOT NULL
+                        UNION
+                        SELECT usuario_id FROM profesor WHERE usuario_id IS NOT NULL
+                    )
+                    ORDER BY nombre ASC";
+        return $this->db->fetchAll($sql);
+    }
     public function obtenerPorCodigo($codigo)
     {
         try {
@@ -43,17 +54,7 @@ class EstudianteModel
         }
     }
 
-    public function obtenerUsuariosLibres()
-    {
-        $sql = "SELECT id, nombre FROM usuario 
-                    WHERE id NOT IN (
-                        SELECT usuario_id FROM estudiante WHERE usuario_id IS NOT NULL
-                        UNION
-                        SELECT usuario_id FROM profesor WHERE usuario_id IS NOT NULL
-                    )
-                    ORDER BY nombre ASC";
-        return $this->db->fetchAll($sql);
-    }
+    
 
     public function crear($data)
     {

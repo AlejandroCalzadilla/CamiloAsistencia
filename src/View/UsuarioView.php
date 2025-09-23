@@ -6,9 +6,9 @@ class UsuarioView implements View
     private $model;
     private $message = '';
 
-    public function __construct(UsuarioModel $model)
+    public function __construct()
     {
-        $this->model = $model;
+        $this->model = new UsuarioModel();
     }
 
     public function showErrorMessage($msg) {
@@ -18,9 +18,16 @@ class UsuarioView implements View
         $this->message = $msg;
     }
 
-    public function render()
-    {
+    public function actualizar(){
+       
         $usuarios = $this->model->obtenerTodos();
+        $this->render($usuarios);
+
+    }
+
+    public function render($usuarios)
+    {
+
         echo "<h2>Usuarios</h2>";
         if ($this->message) echo "<p style='color:green;'>{$this->message}</p>";
         echo "<form method='POST'>

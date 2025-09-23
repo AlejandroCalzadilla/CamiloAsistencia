@@ -4,10 +4,10 @@ class ProfesorController
     private $model;
     private $view;
 
-    public function __construct(ProfesorModel $model, ProfesorView $view)
+    public function __construct()
     {
-        $this->model = $model;
-        $this->view = $view;
+        $this->model = new ProfesorModel();
+        $this->view = new ProfesorView();
     }
 
     public function handleRequest()
@@ -31,7 +31,7 @@ class ProfesorController
                     break;
             }
         } else {
-            $this->view->render();
+            $this->view->actualizar();
         }
     }
 
@@ -49,7 +49,7 @@ class ProfesorController
             $this->view->showErrorMessage('Por favor completa todos los campos');
 
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function editar()
@@ -65,7 +65,7 @@ class ProfesorController
         } else {
             $this->view->showErrorMessage('Por favor completa todos los campos');
         }
-        return $this->view->render();
+        return $this->view->actualizar();
 
 
     }
@@ -82,6 +82,6 @@ class ProfesorController
         }else{
             $this->view->showErrorMessage('Por favor completa todos los campos');
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 }

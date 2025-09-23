@@ -9,9 +9,9 @@ class ProfesorModel{
 
     private $db;
 
-    public function __construct(Conexion $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = new Conexion();
     }
     // Método principal que obtiene profesores con usuarios y usuarios libres
     public function obtener() {
@@ -57,17 +57,7 @@ class ProfesorModel{
         }
     }
 
-    // Obtener usuarios no asociados a estudiante ni profesor
-    public function obtenerUsuariosLibres() {
-        $sql = "SELECT id, nombre FROM usuario \n
-                WHERE id NOT IN (\n
-                    SELECT usuario_id FROM estudiante\n
-                    UNION\n
-                    SELECT usuario_id FROM profesor\n
-                )\n
-                ORDER BY nombre ASC";
-        return $this->db->fetchAll($sql);
-    }
+   
 
     // Crear profesor
     public function crear($codigo, $nombres, $apellidos, $genero, $usuario_id) {

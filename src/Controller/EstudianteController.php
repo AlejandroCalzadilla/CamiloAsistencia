@@ -28,7 +28,7 @@ class EstudianteController
                     break;
             }
         } else {
-            $this->view->render();
+            $this->view->actualizar();
         }
 
     }
@@ -50,14 +50,14 @@ class EstudianteController
             );
             if ($resultado['success']) {
                 $this->view->showSuccessMessage($resultado['mensaje']);
-                return $this->view->render();
+
             } else {
                 $this->view->showErrorMessage($resultado['mensaje']);
-                return $this->view->render();
             }
+        } else {
+            $this->view->showErrorMessage("Datos incompletos para crear estudiante");
         }
-        $this->view->showErrorMessage("Datos incompletos para crear estudiante");
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
 
@@ -77,31 +77,29 @@ class EstudianteController
             );
             if ($resultado['success']) {
                 $this->view->showSuccessMessage($resultado['mensaje']);
-                return $this->view->render();
+
             } else {
                 $this->view->showErrorMessage($resultado['mensaje']);
-                return $this->view->render();
             }
+        } else {
+            $this->view->showErrorMessage("Datos incompletos para actualizar estudiante");
         }
-        $this->view->showErrorMessage("Datos incompletos para actualizar estudiante");
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
 
     public function eliminarEstudiante($codigo)
     {
-        if (empty($codigo)) {
-            $this->view->showErrorMessage("Código de estudiante requerido");
-            return $this->view->render();
-        }
-        $respuesta = $this->model->eliminar($codigo);
-        if (!$respuesta['success']) {
-            $this->view->showErrorMessage($respuesta['mensaje']);
-            return $this->view->render();
+        if (!empty($codigo)) {
+            $respuesta = $this->model->eliminar($codigo);
+            if (!$respuesta['success']) {
+                $this->view->showErrorMessage($respuesta['mensaje']);
+            } else {
+                $this->view->showSuccessMessage($respuesta['mensaje']);
+            }
         } else {
-            $this->view->showSuccessMessage($respuesta['mensaje']);
-            return $this->view->render();
+            $this->view->showErrorMessage("Código de estudiante requerido para eliminar");
         }
-
+        return $this->view->actualizar();
     }
 }

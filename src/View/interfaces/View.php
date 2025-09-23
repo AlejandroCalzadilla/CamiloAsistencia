@@ -3,12 +3,17 @@
 
 interface View {
 
-  public function render();
+
+  
+  public function actualizar();
+  
+  public function render($datos);
 
 
   public function showMessage($message);
 
   public function showErrorMessage($message);
+
 
 
 

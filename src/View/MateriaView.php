@@ -1,25 +1,29 @@
 <?php
-class MateriaView {
-    private $model;
+class MateriaView
+{
+    private MateriaModel $model;
 
-    public function __construct(MateriaModel $model) {
-        $this->model = $model;
+    public function __construct()
+    {
+        $this->model = new MateriaModel();
     }
 
-    public function showMessage($message) {
+    public function showMessage($message)
+    {
         if ($message) {
             echo "<p style='color: green;'>$message</p>";
         }
     }
 
-    public function render() {
-       
-
-        //actuializa la vista con los datos del modelo s
+    public function actualizar()
+    {
         $materias = $this->model->obtener();
-        
+        $this->render($materias);
+    }
+
+    public function render($materias)
+    {
         echo "<h2>Materias</h2>";
-       
         echo "<form method='POST'>
                 <input type='text' name='nombre' placeholder='Nueva materia' required>
                 <button type='submit' name='evento' value='crear'>Crear</button>

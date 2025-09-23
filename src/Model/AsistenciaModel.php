@@ -14,9 +14,9 @@ class AsistenciaModel
     private $db;
 
 
-    public function __construct(Conexion $db)
+    public function __construct()
     {
-        $this->db = $db;
+        $this->db = new Conexion();
     }
 
 

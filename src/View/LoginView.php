@@ -10,9 +10,9 @@ class LoginView implements View
 
     private $usuarioModel;
 
-    public function __construct(UsuarioModel $usuario)
+    public function __construct()
     {
-        $this->usuarioModel = $usuario;
+        $this->usuarioModel = new UsuarioModel();
     }
 
     public function setModel(UsuarioModel $model)
@@ -39,9 +39,15 @@ class LoginView implements View
         $this->messageType = 'error';
     }
 
+     
+    public function actualizar(){
+
+        $datos="";
+        $this->render($datos);
+    }
 
     
-    public function render()
+    public function render($datos)
     {
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Login - Sistema de Asistencia</title>";

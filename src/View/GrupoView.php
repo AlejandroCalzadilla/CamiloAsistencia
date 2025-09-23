@@ -8,10 +8,18 @@ class GrupoView
     private $tipoFormulario = 'crear';
     private $grupoIdEditar = null;
 
-    public function __construct(GrupoModel $model = null)
+    public function __construct()
     {
-        $this->model = $model;
+        $this->model = new GrupoModel();
     }
+
+
+    public function actualizar(){
+        $data = $this->model->mostrar();
+        $this->render($data);
+    }
+
+
 
     public function showSuccessMessage($message)
     {
@@ -31,13 +39,8 @@ class GrupoView
         $this->grupoIdEditar = $grupoId;
     }
 
-    public function render()
+    public function render($data)
     {
-        if (!$this->model) {
-            echo "<p style='color: red;'>Error: No se ha configurado el modelo de grupo</p>";
-            return;
-        }
-        $data = $this->model->mostrar();
         $grupo = $data; 
         $profesores = $data['profesores'] ?? [];
         $materias = $data['materias'] ?? [];

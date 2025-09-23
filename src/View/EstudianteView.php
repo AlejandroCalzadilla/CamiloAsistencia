@@ -1,28 +1,40 @@
 <?php
-class EstudianteView {
+class EstudianteView
+{
     private $estudiantemodel;
     private $message = '';
     private $messageType = '';
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->estudiantemodel = new EstudianteModel();
     }
 
-    public function showSuccessMessage($message) {
+
+    public function actualizar()
+    {
+        $estudiantes = $this->estudiantemodel->obtenerTodos();
+        $usuariosLibres = $this->estudiantemodel->obtenerUsuariosLibres();
+        $this->render($estudiantes, $usuariosLibres);
+    }
+
+
+
+
+    public function showSuccessMessage($message)
+    {
         $this->message = $message;
         $this->messageType = 'success';
     }
 
-    public function showErrorMessage($message) {
+    public function showErrorMessage($message)
+    {
         $this->message = $message;
         $this->messageType = 'error';
     }
 
-  public function render($estudiantes = null) {
-        if ($estudiantes === null) {
-            $estudiantes = $this->estudiantemodel->obtenerTodos();
-        }
-        $usuariosLibres = $this->estudiantemodel->obtenerUsuariosLibres();
+    public function render($estudiantes, $usuariosLibres)
+    {
 
         echo "<!DOCTYPE html><html><head><title>Estudiantes</title></head><body>";
         echo "<h2>Estudiantes</h2>";

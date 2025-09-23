@@ -6,8 +6,5 @@ require_once __DIR__ . '/../src/Controller/EstudianteController.php';
 require_once __DIR__ . '/../src/Conexion/Conexion.php';
 
 
-//$db =Conexion::getInstance();
-//$estudianteModel= new EstudianteModel($db);
-//$view = new EstudianteView($estudianteModel);
 $controller = new EstudianteController();
 $controller->handleRequest();

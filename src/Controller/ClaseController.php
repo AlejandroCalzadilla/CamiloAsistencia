@@ -8,11 +8,11 @@ class ClaseController
     private $view;
     private $asistenciaModel;
 
-    public function __construct(ClaseModel $model, AsistenciaModel $asistenciaModel, ClaseView $view)
+    public function __construct()
     {
-        $this->model = $model;
-        $this->asistenciaModel = $asistenciaModel;
-        $this->view = $view;
+        $this->model = new ClaseModel();
+        $this->asistenciaModel = new AsistenciaModel();
+        $this->view = new ClaseView();
     }
 
     public function handleRequest($grupo_id)
@@ -25,10 +25,10 @@ class ClaseController
                     $this->crearClase($grupo_id);
                     break;
                 case 'registrar_asistencia':
-                    $this->registrarAsistencia();
+                    $this->registrarAsistencia($grupo_id);
                     break;
                 case 'eliminar_clase':
-                    $this->eliminarClase();
+                    $this->eliminarClase($grupo_id);
                     break;    
                 case 'mostrar_form_crear':
                     $this->mostrarFormularioCrear();
@@ -47,11 +47,10 @@ class ClaseController
                     $this->view->showErrorMessage("Evento no soportado: " . $evento);
                     break;
             }
+        } else {
+            $this->view->actualizar($grupo_id);
         }
-
-        // Siempre renderizar al final
-        $this->view->render($grupo_id);
-    }
+     }
 
     public function crearClase($grupo_id)
     {
@@ -61,7 +60,6 @@ class ClaseController
         $dia = $_POST['dia'];
         $hora_inicio = $_POST['hora_inicio'];
         $hora_fin = $_POST['hora_fin'];
-        // Validaciones
         if ($hora_fin <= $hora_inicio) {
             $this->view->showErrorMessage('La hora de fin debe ser posterior a la hora de inicio');
             return;
@@ -79,12 +77,12 @@ class ClaseController
         } else {
             $this->view->showErrorMessage($resultado['mensaje']);
         }
+        return $this->view->actualizar($grupo_id);
     }
-    public function registrarAsistencia()
+    public function registrarAsistencia($grupo_id)
     {
         session_start();
         $usuarioData = $_SESSION['usuario_logueado'];
-
         $usuario_id = $usuarioData['id'];
         $clase_id = intval($_POST['clase_id']);
         $codigo_verificacion = $_POST['qr_codigo'];
@@ -98,6 +96,7 @@ class ClaseController
         } else {
             $this->view->showErrorMessage($resultado['mensaje']);
         }
+        return $this->view->actualizar($grupo_id);
     }
 
     public function mostrarFormularioCrear()
@@ -116,34 +115,30 @@ class ClaseController
             $this->view->showErrorMessage('ID de clase no especificado');
             return;
         }
-
         $clase_id = intval($_POST['clase_id']);
         $this->view->setMostrarAsistencias(true, $clase_id);
     }
 
-    public function eliminarClase()
+    public function eliminarClase($grupo_id)
     {
         session_start();
         $usuarioData = $_SESSION['usuario_logueado'];
-        
         if (!$usuarioData || $usuarioData['rol'] !== 'profesor') {
             $this->view->showErrorMessage('Solo los profesores pueden eliminar clases');
             return;
         }
-
         if (!isset($_POST['clase_id'])) {
             $this->view->showErrorMessage('ID de clase no especificado');
             return;
         }
-
         $clase_id = intval($_POST['clase_id']);
         $resultado = $this->model->eliminar($clase_id);
-        
         if ($resultado['success']) {
             $this->view->showSuccessMessage($resultado['mensaje']);
         } else {
             $this->view->showErrorMessage($resultado['mensaje']);
         }
+        return $this->view->actualizar($grupo_id);
     }
 
     public function volverGrupos()

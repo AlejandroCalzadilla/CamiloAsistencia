@@ -9,10 +9,10 @@ class ClaseView
     private $mostrarAsistencias = false;
     private $claseIdAsistencias = null;
 
-    public function __construct(ClaseModel $claseModel, AsistenciaModel $asistenciaModel)
+    public function __construct()
     {
-        $this->claseModel = $claseModel;
-        $this->asistenciaModel = $asistenciaModel;
+        $this->claseModel = new ClaseModel();
+        $this->asistenciaModel = new AsistenciaModel();
     }
 
     public function showSuccessMessage($message)
@@ -38,11 +38,17 @@ class ClaseView
         $this->claseIdAsistencias = $claseId;
     }
 
-    public function render($grupo_id)
+    public function actualizar($grupo_id)
     {
         $data = $this->claseModel->mostrar($grupo_id);
         $asistenciaData = $this->asistenciaModel->obtener($grupo_id);
+        $this->render($data, $asistenciaData);
+    }
 
+
+    public function render($data , $asistenciaData)
+    {
+     
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Clases - Sistema de Asistencia</title>";
         $this->renderCSS();

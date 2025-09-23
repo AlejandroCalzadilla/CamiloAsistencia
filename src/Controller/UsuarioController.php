@@ -9,9 +9,9 @@ class UsuarioController
 {
     private $model;
     private $view;
-    public function __construct(UsuarioModel $model, View $view)
+    public function __construct(View $view)
     {
-        $this->model = $model;
+        $this->model = new UsuarioModel();
         $this->view = $view;
 
     }
@@ -37,11 +37,11 @@ class UsuarioController
                     break;
                 default:
                     $this->view->showMessage("Evento no soportado");
-                    $this->view->render();
+                    $this->view->actualizar();
                     break;
             }
         } else {
-            $this->view->render();
+            $this->view->actualizar();
         }
     }
 
@@ -56,10 +56,13 @@ class UsuarioController
                 exit();
             } else {
                 $this->view->showErrorMessage("Credenciales incorrectas");
-                return $this->view->render();
-
             }
         }
+        else{
+            $this->view->showErrorMessage("Ingrese Crendenciales");
+        }
+
+        return $this->view->actualizar();
     }
 
 
@@ -69,7 +72,7 @@ class UsuarioController
     {
         $this->model->crear($_POST['nombre'], $_POST['contrasena']);
         $this->view->showMessage('Usuario creado');
-        return $this->view->render();
+        return $this->view->actualizar();
 
     }
 
@@ -78,14 +81,14 @@ class UsuarioController
         $contrasena = !empty($_POST['contrasena']) ? $_POST['contrasena'] : null;
         $this->model->editar($_POST['id'], $_POST['nombre'], $contrasena);
         $this->view->showMessage('Usuario editado');
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
     public function eliminar()
     {
         if (!isset($_POST['id']) || empty($_POST['id'])) {
             $this->view->showErrorMessage('ID de usuario no proporcionado');
-            $this->view->render();
+            $this->view->actualizar();
             return;
         }
         $resultado = $this->model->eliminar($_POST['id']);
@@ -94,7 +97,7 @@ class UsuarioController
         } else {
             $this->view->showErrorMessage($resultado['mensaje']);
         }
-        return $this->view->render();
+        return $this->view->actualizar();
     }
 
 
