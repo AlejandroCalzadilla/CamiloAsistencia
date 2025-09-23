@@ -2,12 +2,12 @@
 class ClaseView
 {
     private $claseModel;
+    private $asistenciaModel;
     private $message = '';
     private $messageType = '';
-
-    private $asistenciaModel;
-
-
+    private $mostrarFormulario = false;
+    private $mostrarAsistencias = false;
+    private $claseIdAsistencias = null;
 
     public function __construct(ClaseModel $claseModel, AsistenciaModel $asistenciaModel)
     {
@@ -27,223 +27,25 @@ class ClaseView
         $this->messageType = 'error';
     }
 
+    public function setMostrarFormulario($mostrar)
+    {
+        $this->mostrarFormulario = $mostrar;
+    }
+
+    public function setMostrarAsistencias($mostrar, $claseId = null)
+    {
+        $this->mostrarAsistencias = $mostrar;
+        $this->claseIdAsistencias = $claseId;
+    }
+
     public function render($grupo_id)
     {
         $data = $this->claseModel->mostrar($grupo_id);
         $asistenciaData = $this->asistenciaModel->obtener($grupo_id);
+
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Clases - Sistema de Asistencia</title>";
-        echo "<style>";
-        echo "body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }";
-        echo ".container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }";
-        echo ".header { text-align: center; color: #2c3e50; margin-bottom: 30px; }";
-        echo ".success { color: green; background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".grupo-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }";
-        echo ".clases-section { margin: 30px 0; }";
-
-        // Estilos de las tarjetas de clase
-        echo ".clase-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; transition: all 0.3s ease; }";
-        echo ".clase-card.asistencia-presente { background: #d4edda; border-color: #c3e6cb; border-left: 5px solid #28a745; }";
-        echo ".clase-card.asistencia-ausente { background: #f8d7da; border-color: #f5c6cb; border-left: 5px solid #dc3545; }";
-        echo ".clase-card h4 { color: #495057; margin: 0 0 10px 0; }";
-        echo ".clase-meta { color: #6c757d; font-size: 0.9em; margin: 5px 0; }";
-
-        // Indicador de asistencia
-        echo ".asistencia-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 10px; }";
-        echo ".badge-presente { background: #d4edda; color: #155724; }";
-        echo ".badge-ausente { background: #f8d7da; color: #721c24; }";
-
-        // Formulario de QR
-        echo ".qr-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 10px 0; }";
-        echo ".qr-input { width: 200px; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-right: 10px; }";
-        echo ".qr-scanner { background: #17a2b8; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; margin-left: 5px; }";
-        echo ".qr-scanner:hover { background: #138496; }";
-        echo ".qr-upload { background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 15px; margin: 10px 0; }";
-        echo ".file-input { margin: 10px 0; }";
-        echo ".upload-btn { background: #2196f3; color: white; padding: 8px 12px; border: none; border-radius: 4px; cursor: pointer; }";
-        echo ".upload-btn:hover { background: #1976d2; }";
-        echo ".preview-image { max-width: 200px; max-height: 200px; margin: 10px 0; border: 1px solid #ddd; border-radius: 4px; }";
-
-        echo ".btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
-        echo ".btn:hover { background: #0056b3; }";
-        echo ".btn-success { background: #28a745; }";
-        echo ".btn-success:hover { background: #218838; }";
-        echo ".btn-warning { background: #ffc107; color: #212529; }";
-        echo ".btn-warning:hover { background: #e0a800; }";
-        echo ".btn-danger { background: #dc3545; }";
-        echo ".btn-danger:hover { background: #c82333; }";
-        echo ".btn-secondary { background: #6c757d; }";
-        echo ".btn-secondary:hover { background: #5a6268; }";
-        echo ".actions { text-align: center; margin: 30px 0; }";
-        echo ".no-clases { text-align: center; color: #6c757d; padding: 40px; background: #f8f9fa; border-radius: 8px; }";
-        echo ".access-denied { text-align: center; color: #dc3545; padding: 40px; background: #f8d7da; border-radius: 8px; border: 1px solid #f5c6cb; }";
-        echo ".role-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }";
-        echo ".role-profesor { background: #d4edda; color: #155724; }";
-        echo ".role-estudiante { background: #cce7ff; color: #004085; }";
-        echo ".role-admin { background: #f8d7da; color: #721c24; }";
-        echo ".qr-code { background: #fff; border: 2px dashed #007bff; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }";
-
-        // Estilos para crear clase
-        echo ".crear-clase-form { background: #e3f2fd; border: 1px solid #bbdefb; border-radius: 8px; padding: 20px; margin: 20px 0; display: none; }";
-        echo ".form-group { margin-bottom: 15px; }";
-        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }";
-        echo ".btn-crear-clase { background: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; }";
-        echo ".btn-crear-clase:hover { background: #218838; }";
-        echo ".qr-display { background: #fff; border: 2px solid #28a745; padding: 15px; border-radius: 8px; text-align: center; margin: 10px 0; }";
-        echo ".qr-codigo { font-family: monospace; font-size: 14px; background: #f8f9fa; padding: 8px; border-radius: 4px; margin: 5px 0; }";
-        echo "</style>";
-
-
-        echo "<script>";
-        echo "
-        // Función para mostrar/ocultar formulario de crear clase
-        function mostrarFormularioCrearClase() {
-            console.log('Ejecutando mostrarFormularioCrearClase');
-            const form = document.getElementById('crear-clase-form');
-            if (form) {
-                form.style.display = form.style.display === 'none' || form.style.display === '' ? 'block' : 'none';
-            } else {
-                console.error('No se encontró el elemento crear-clase-form');
-            }
-        }
-
-        // Función para crear clase
-        function crearClase() {
-            console.log('Ejecutando crearClase');
-            const dia = document.getElementById('dia-clase').value;
-            const horaInicio = document.getElementById('hora-inicio').value;
-            const horaFin = document.getElementById('hora-fin').value;
-            
-            // Validaciones
-            if (!dia) {
-                alert('Por favor selecciona una fecha');
-                return;
-            }
-            
-            if (!horaInicio) {
-                alert('Por favor selecciona la hora de inicio');
-                return;
-            }
-            
-            if (!horaFin) {
-                alert('Por favor selecciona la hora de fin');
-                return;
-            }
-            
-            // Validar que la hora de fin sea posterior a la hora de inicio
-            if (horaFin <= horaInicio) {
-                alert('La hora de fin debe ser posterior a la hora de inicio');
-                return;
-            }
-            
-            const btn = document.getElementById('btn-crear-clase');
-            const originalText = btn.textContent;
-            btn.textContent = '⏳ Creando...';
-            btn.disabled = true;
-            
-            // Agregar las horas al body del request
-            fetch(window.location.pathname + window.location.search, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'evento=crear_clase&dia=' + encodeURIComponent(dia) + 
-                      '&hora_inicio=' + encodeURIComponent(horaInicio) +
-                      '&hora_fin=' + encodeURIComponent(horaFin)
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert('Clase creada exitosamente. Código QR: ' + data.qr_codigo);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.mensaje);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error de conexión');
-            })
-            .finally(() => {
-                btn.textContent = originalText;
-                btn.disabled = false;
-            });
-        }
-
-        // Función para registrar asistencia
-         function registrarAsistencia(claseId, qrCode) {
-            if (!qrCode.trim()) {
-                alert('Por favor ingresa el código QR');
-                return;
-            }
-            console.log('Registrando asistencia para claseId:', claseId, 'con QR:', qrCode);
-            
-            fetch(window.location.pathname + window.location.search, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'evento=registrarAsistencia&qr_codigo=' + encodeURIComponent(qrCode) + '&clase_id=' + claseId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    alert(data.mensaje);
-                    location.reload();
-                } else {
-                    alert('Error: ' + data.mensaje);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error de conexión');
-            });
-        }
-        // Función para ver asistencias
-        function verAsistencias(claseId) {
-            fetch(window.location.pathname + window.location.search, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: 'evento=obtener_asistencias&clase_id=' + claseId
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    mostrarModalAsistencias(data.asistencias, data.clase);
-                } else {
-                    alert('Error: ' + data.mensaje);
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Error de conexión');
-            });
-        }
-
-        // Función para cerrar modal
-        function cerrarModal() {
-            const modal = document.querySelector('[style*=\"position: fixed\"]');
-            if (modal) modal.remove();
-        }
-            // Función para mostrar/ocultar detalle de asistencias
-function toggleDetalleAsistencias(claseId) {
-    const detalle = document.getElementById('detalle-' + claseId);
-    if (detalle) {
-        detalle.style.display = detalle.style.display === 'none' ? 'block' : 'none';
-    }
-}
-
-        // Verificar que el DOM esté cargado
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM cargado, funciones disponibles:', {
-                mostrarFormularioCrearClase: typeof mostrarFormularioCrearClase,
-                crearClase: typeof crearClase,
-                registrarAsistencia: typeof registrarAsistencia
-            });
-        });
-        
-        ";
-
-
-        echo "</script>";
-
+        $this->renderCSS();
         echo "</head><body>";
 
         echo "<div class='container'>";
@@ -257,6 +59,14 @@ function toggleDetalleAsistencias(claseId) {
             $class = $this->messageType === 'success' ? 'success' : 'error';
             echo "<div class='$class'>{$this->message}</div>";
         }
+
+        // Botón volver
+        echo "<div style='margin: 20px 0;'>";
+        echo "<form method='POST' style='display: inline;'>";
+        echo "<input type='hidden' name='evento' value='volver_grupos'>";
+        echo "<button type='submit' class='btn btn-secondary'>🔙 Volver a Grupos</button>";
+        echo "</form>";
+        echo "</div>";
 
         // Verificaciones de acceso
         if ($data['rol'] === 'no_logueado') {
@@ -275,7 +85,6 @@ function toggleDetalleAsistencias(claseId) {
             echo "<p>Los administradores no pueden ver las clases de los grupos.</p>";
             echo "<div class='actions'>";
             echo "<a href='admin-dashboard.php' class='btn btn-warning'>📊 Panel de Administrador</a>";
-            echo "<a href='grupo.php' class='btn btn-secondary'>🔙 Volver</a>";
             echo "</div>";
             echo "</div>";
             echo "</div></body></html>";
@@ -289,37 +98,70 @@ function toggleDetalleAsistencias(claseId) {
             echo "<p><strong>Grupo:</strong> {$data['grupo']['grupo_nombre']}</p>";
             echo "<p><strong>Materia:</strong> {$data['grupo']['materia_nombre']}</p>";
             echo "<p><strong>Profesor:</strong> {$data['grupo']['profesor_nombres']} {$data['grupo']['profesor_apellidos']}</p>";
-
-
             echo "</div>";
         }
 
-        // Formulario para crear clase (solo para profesores)
+        // Formulario crear clase (solo profesores)
         if ($data['rol'] === 'profesor') {
-            echo "<div id='crear-clase-form' class='crear-clase-form'>";
-            echo "<h4>➕ Crear Nueva Clase</h4>";
-
-            echo "<div class='form-group'>";
-            echo "<label for='dia-clase'>Fecha de la clase:</label>";
-            echo "<input type='date' id='dia-clase' class='form-control' value='" . date('Y-m-d') . "'>";
-            echo "</div>";
-
-            echo "<div class='form-group'>";
-            echo "<label for='hora-inicio'>Hora de inicio:</label>";
-            echo "<input type='time' id='hora-inicio' class='form-control' value='" . date('H:i') . "'>";
-            echo "</div>";
-
-            echo "<div class='form-group'>";
-            echo "<label for='hora-fin'>Hora de fin:</label>";
-            echo "<input type='time' id='hora-fin' class='form-control' value='" . date('H:i', strtotime('+2 hours')) . "'>";
-            echo "</div>";
-
-            echo "<button id='btn-crear-clase' class='btn-crear-clase' onclick='crearClase()'>🎓 Crear Clase</button>";
-            echo "<button class='btn btn-secondary' onclick='mostrarFormularioCrearClase()' style='margin-left: 10px;'>❌ Cancelar</button>";
-            echo "</div>";
+            if (!$this->mostrarFormulario) {
+                echo "<div style='margin: 20px 0;'>";
+                echo "<form method='POST' style='display: inline;'>";
+                echo "<input type='hidden' name='evento' value='mostrar_form_crear'>";
+                echo "<button type='submit' class='btn btn-success'>➕ Crear Nueva Clase</button>";
+                echo "</form>";
+                echo "</div>";
+            } else {
+                $this->renderFormularioCrearClase();
+            }
         }
 
         // Mostrar clases
+        $this->renderClases($data, $asistenciaData);
+
+        echo "</div>";
+        echo "</body></html>";
+    }
+
+    private function renderFormularioCrearClase()
+    {
+        echo "<div class='form-section'>";
+        echo "<h4>➕ Crear Nueva Clase</h4>";
+        echo "<form method='POST'>";
+        echo "<input type='hidden' name='evento' value='crear_clase'>";
+
+        echo "<div class='form-group'>";
+        echo "<label>Fecha de la clase:</label>";
+        echo "<input type='date' name='dia' value='" . date('Y-m-d') . "' required class='form-control'>";
+        echo "</div>";
+
+        echo "<div class='form-group'>";
+        echo "<label>Hora de inicio Presente:</label>";
+        echo "<input type='time' name='hora_inicio' value='" . date('H:i') . "' required class='form-control'>";
+        echo "</div>";
+
+        echo "<div class='form-group'>";
+        echo "<label>Hora de fin Presente:</label>";
+        echo "<input type='time' name='hora_fin' value='" . date('H:i', strtotime('+2 hours')) . "' required class='form-control'>";
+        echo "</div>";
+
+        echo "<div style='margin-top: 20px;'>";
+        echo "<button type='submit' class='btn btn-success'>🎓 Crear Clase</button>";
+        echo "</div>";
+        echo "</form>";
+
+        // Formulario separado para cancelar
+        echo "<div style='margin-top: 10px;'>";
+        echo "<form method='POST' style='display: inline;'>";
+        echo "<input type='hidden' name='evento' value='cancelar_formulario'>";
+        echo "<button type='submit' class='btn btn-secondary'>❌ Cancelar</button>";
+        echo "</form>";
+        echo "</div>";
+
+        echo "</div>";
+    }
+
+    private function renderClases($data, $asistenciaData)
+    {
         echo "<div class='clases-section'>";
 
         if (empty($data['clases'])) {
@@ -327,214 +169,235 @@ function toggleDetalleAsistencias(claseId) {
             echo "<h3>📅 Sin clases registradas</h3>";
             if ($data['rol'] === 'profesor') {
                 echo "<p>No hay clases creadas para este grupo.</p>";
-                echo "<button onclick='mostrarFormularioCrearClase()' class='btn btn-success'>➕ Crear Primera Clase</button>";
             } else {
                 echo "<p>El profesor aún no ha creado clases para este grupo.</p>";
             }
             echo "</div>";
-
         } else {
-            // Mostrar lista de clases
             echo "<h3>📅 Clases Registradas (" . count($data['clases']) . ")</h3>";
 
-
-
-
-            // Botón para crear nueva clase (solo para profesores)
-            if ($data['rol'] === 'profesor') {
-                echo "<div style='margin-bottom: 20px;'>";
-                echo "<button onclick='mostrarFormularioCrearClase()' class='btn btn-success'>➕ Crear Nueva Clase</button>";
-                echo "</div>";
-            }
-
-
+            // Organizar asistencias por clase
             $asistenciasPorClase = [];
             $miAsistenciaPorClase = [];
+
             if (is_array($asistenciaData)) {
-                $rolfor = $data['rol'];
                 foreach ($asistenciaData as $asistencia) {
                     $clase_id = $asistencia['clase_id'];
-                    echo "<script>";
-                    echo "console.log('clase_id', " . json_encode($clase_id) . ");";
-                    echo "</script>";
-                    if ($rolfor=== 'profesor') {
 
+                    if ($data['rol'] === 'profesor') {
                         if (!isset($asistenciasPorClase[$clase_id])) {
                             $asistenciasPorClase[$clase_id] = [];
                         }
-
                         $asistenciasPorClase[$clase_id][] = $asistencia;
-                    } elseif ($rolfor === 'estudiante') {
-                        // Para estudiante: solo su asistencia por clase
+                    } elseif ($data['rol'] === 'estudiante') {
                         $miAsistenciaPorClase[$clase_id] = $asistencia;
                     }
                 }
             }
-            echo "<script>";
-            echo "console.log('miasistenciaporclase', " . json_encode($asistenciaData) . ");";
-            echo "</script>";
 
             foreach ($data['clases'] as $clase) {
-                // Determinar el estilo de la tarjeta según la asistencia
-                echo "<script>";
-                echo "console.log('Renderizando clase ID: {$clase['id']} para rol: {$data['rol']}');";
-                echo "</script>";
-                $cardClass = "clase-card";
-                $badgeClass = "";
-                $badgeText = "";
+                $this->renderClaseCard($clase, $data['rol'], $asistenciasPorClase, $miAsistenciaPorClase);
+            }
+        }
 
-                if ($data['rol'] === 'estudiante') {
-                    // Usar datos de asistencia reales
-                    $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+        echo "</div>";
+    }
 
-                    if ($miAsistencia) {
-                        switch ($miAsistencia['tipo']) {
-                            case 'presente':
-                                $cardClass .= " asistencia-presente";
-                                $badgeClass = "badge-presente";
-                                $badgeText = "✅ Presente";
-                                break;
-                            case 'retraso':
-                                $cardClass .= " asistencia-presente";
-                                $badgeClass = "badge-presente";
-                                $badgeText = "⏰ Retraso";
-                                break;
-                            case 'ausente':
-                            default:
-                                $cardClass .= " asistencia-ausente";
-                                $badgeClass = "badge-ausente";
-                                $badgeText = "❌ Ausente";
-                                break;
-                        }
-                    } else {
+    private function renderClaseCard($clase, $rol, $asistenciasPorClase, $miAsistenciaPorClase)
+    {
+        // Determinar estilo según asistencia
+        $cardClass = "clase-card";
+        $badgeClass = "";
+        $badgeText = "";
+
+        if ($rol === 'estudiante') {
+            $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+
+            if ($miAsistencia) {
+                switch ($miAsistencia['tipo']) {
+                    case 'presente':
+                        $cardClass .= " asistencia-presente";
+                        $badgeClass = "badge-presente";
+                        $badgeText = "✅ Presente";
+                        break;
+                    case 'retraso':
+                        $cardClass .= " asistencia-presente";
+                        $badgeClass = "badge-presente";
+                        $badgeText = "⏰ Retraso";
+                        break;
+                    case 'ausente':
+                    default:
                         $cardClass .= " asistencia-ausente";
                         $badgeClass = "badge-ausente";
                         $badgeText = "❌ Ausente";
-                    }
+                        break;
                 }
+            } else {
+                $cardClass .= " asistencia-ausente";
+                $badgeClass = "badge-ausente";
+                $badgeText = "❌ Ausente";
+            }
+        }
 
-                echo "<div class='$cardClass'>";
-                echo "<h4>📖 Clase del " . date('d/m/Y', strtotime($clase['dia']));
+        echo "<div class='$cardClass'>";
+        echo "<h4>📖 Clase del " . date('d/m/Y', strtotime($clase['dia']));
 
-                // Mostrar badge de asistencia para estudiantes
-                if ($data['rol'] === 'estudiante') {
-                    echo "<span class='asistencia-badge $badgeClass'>$badgeText</span>";
-                }
+        // Badge de asistencia para estudiantes
+        if ($rol === 'estudiante') {
+            echo "<span class='asistencia-badge $badgeClass'>$badgeText</span>";
+        }
 
-                echo "</h4>";
-                echo "<div class='clase-meta'>";
-                echo "<p><strong>Fecha y hora:</strong> " . date('d/m/Y H:i:s', strtotime($clase['fecha'])) . "</p>";
-                echo "<script>";
-                echo "console.log('llega aca'); rol = '{$data['rol']}'; asistenciasPorClase = " . json_encode($asistenciasPorClase) . ";";
-                echo "</script>";
-                // Para profesor: mostrar lista de asistencias
-                if ($data['rol'] === 'profesor' && isset($asistenciasPorClase[$clase['id']])) {
-
-                    $asistencias = $asistenciasPorClase[$clase['id']];
-                    $totalEstudiantes = count($asistencias);
-                    $presentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'presente'));
-                    $retrasos = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'retraso'));
-                    $ausentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'ausente'));
-
-                    echo "<div class='asistencias-resumen' style='background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0;'>";
-                    echo "<h5>📊 Resumen de Asistencias</h5>";
-                    echo "<p><strong>Total estudiantes:</strong> $totalEstudiantes</p>";
-                    echo "<p><strong>Presentes:</strong> <span style='color: #28a745;'>$presentes</span> | ";
-                    echo "<strong>Retrasos:</strong> <span style='color: #ffc107;'>$retrasos</span> | ";
-                    echo "<strong>Ausentes:</strong> <span style='color: #dc3545;'>$ausentes</span></p>";
+        echo "</h4>";
+        echo "<div class='clase-meta'>";
+        echo "<p><strong>Fecha:</strong> " . date('d/m/Y', strtotime($clase['dia'])) . "</p>";
+        echo "<p><strong>Hora inicio presente</strong> {$clase['hora_inicio']} - <strong>Hora fin  presente</strong> - {$clase['hora_fin']}</p>";
 
 
+        // Para profesor: mostrar resumen de asistencias
+        if ($rol === 'profesor' && isset($asistenciasPorClase[$clase['id']])) {
+            $asistencias = $asistenciasPorClase[$clase['id']];
+            $totalEstudiantes = count($asistencias);
+            $presentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'presente'));
+            $retrasos = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'retraso'));
+            $ausentes = count(array_filter($asistencias, fn($a) => $a['tipo'] === 'ausente'));
 
-                    // Botón para ver detalle
-                    echo "<button onclick='toggleDetalleAsistencias({$clase['id']})' class='btn btn-sm' style='font-size: 0.8em;'>👁️ Ver Detalle</button>";
+            echo "<div class='asistencias-resumen'>";
+            echo "<h5>📊 Resumen de Asistencias</h5>";
+            echo "<p><strong>Total estudiantes:</strong> $totalEstudiantes</p>";
+            echo "<p><strong>Presentes:</strong> <span style='color: #28a745;'>$presentes</span> | ";
+            echo "<strong>Retrasos:</strong> <span style='color: #ffc107;'>$retrasos</span> | ";
+            echo "<strong>Ausentes:</strong> <span style='color: #dc3545;'>$ausentes</span></p>";
 
-                    // Lista detallada (inicialmente oculta)
-                    echo "<div id='detalle-{$clase['id']}' style='display: none; margin-top: 10px;'>";
-                    echo "<h6>Lista de Estudiantes:</h6>";
-                    echo "<div style='max-height: 200px; overflow-y: auto;'>";
+            // Formulario para ver asistencias detalladas
+            echo "<form method='POST' style='display: inline;'>";
+            echo "<input type='hidden' name='evento' value='ver_asistencias'>";
+            echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
+            echo "<button type='submit' class='btn' style='font-size: 0.8em;'>👁️ Ver Detalle</button>";
+            echo "</form>";
 
-                    foreach ($asistencias as $asistencia) {
-                        $iconoTipo = match ($asistencia['tipo']) {
-                            'presente' => '✅',
-                            'retraso' => '⏰',
-                            'ausente' => '❌',
-                            default => '❓'
-                        };
+            // Mostrar detalles si están activados
+            if ($this->mostrarAsistencias && $this->claseIdAsistencias == $clase['id']) {
+                echo "hora_inicio: {}"; // Ejemplo de uso de hora_inicio
+                echo "<div style='margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 5px;'>";
+                echo "<h6>Lista de Estudiantes:</h6>";
+                echo "<div style='max-height: 200px; overflow-y: auto;'>";
 
-                        $colorTipo = match ($asistencia['tipo']) {
-                            'presente' => '#28a745',
-                            'retraso' => '#ffc107',
-                            'ausente' => '#dc3545',
-                            default => '#6c757d'
-                        };
+                foreach ($asistencias as $asistencia) {
+                    $iconoTipo = match ($asistencia['tipo']) {
+                        'presente' => '✅',
+                        'retraso' => '⏰',
+                        'ausente' => '❌',
+                        default => '❓'
+                    };
 
-                        echo "<div style='display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;'>";
-                        echo "<span>{$asistencia['estudiante_nombres']} {$asistencia['estudiante_apellidos']}</span>";
-                        echo "<span style='color: $colorTipo; font-weight: bold;'>$iconoTipo {$asistencia['tipo']}</span>";
-                        echo "</div>";
-                    }
+                    $colorTipo = match ($asistencia['tipo']) {
+                        'presente' => '#28a745',
+                        'retraso' => '#ffc107',
+                        'ausente' => '#dc3545',
+                        default => '#6c757d'
+                    };
 
+                    echo "<div style='display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee;'>";
+                    echo "<span>{$asistencia['estudiante_nombres']} {$asistencia['estudiante_apellidos']}</span>";
+                    echo "<span style='color: $colorTipo; font-weight: bold;'>$iconoTipo {$asistencia['tipo']}</span>";
                     echo "</div>";
-                    echo "</div>";
-                    echo "</div>";
-                }
-
-                // Mostrar código QR si existe
-                if ($clase['qr'] && $data['rol'] === 'profesor') {
-                    echo "<div class='qr-code'>";
-                    echo "<p><strong>🔗 Código QR:</strong> {$clase['qr']}</p>";
-                    echo "<small>Los estudiantes pueden usar este código para registrar asistencia</small>";
-                    echo "</div>";
-                }
-
-                echo "</div>";
-
-                // Botones según el rol
-                echo "<div style='margin-top: 15px;'>";
-
-                if ($data['rol'] === 'profesor') {
-                    // Botones para profesores
-                    echo "<a href='editar-clase.php?clase_id={$clase['id']}' class='btn btn-warning'>✏️ Editar</a>";
-                    echo "<a href='eliminar-clase.php?clase_id={$clase['id']}' class='btn btn-danger' onclick='return confirm(\"¿Estás seguro de eliminar esta clase?\")'>🗑️ Eliminar</a>";
-
-                } elseif ($data['rol'] === 'estudiante') {
-                    // Para estudiante: verificar si puede marcar asistencia
-                    $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
-                    $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
-
-                    if ($puedeMarcar && $clase['qr']) {
-                        echo "<div class='qr-form'>";
-                        echo "<h5>📱 Registrar Asistencia con Código</h5>";
-                        echo "<div style='margin-bottom: 15px;'>";
-                        echo "<label><strong>Escribir código:</strong></label>";
-                        echo "<div>";
-                        echo "<input type='text' id='qr_{$clase['id']}' class='qr-input' placeholder='Ingresa código' maxlength='100'>";
-                        echo "<button class='btn btn-success' onclick='registrarAsistencia({$clase['id']}, document.getElementById(\"qr_{$clase['id']}\").value)'>✅ Marcar Asistencia</button>";
-                        echo "</div>";
-                        echo "</div>";
-                        echo "</div>";
-                    } elseif ($miAsistencia && $miAsistencia['tipo'] !== 'ausente') {
-                        echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
-                        echo "✅ <strong>Asistencia registrada como: {$miAsistencia['tipo']}</strong>";
-                        if ($miAsistencia['hora_inicio']) {
-                            echo "<br><small>Hora: {$miAsistencia['hora_inicio']}</small>";
-                        }
-                        echo "</div>";
-                    }
                 }
 
                 echo "</div>";
                 echo "</div>";
             }
 
-
-
+            echo "</div>";
         }
-        echo "</div>";
+
+        // Mostrar código  para profesores
+        if ($clase['qr'] && $rol === 'profesor') {
+            echo "<div class='qr-code'>";
+            echo "<p><strong>🔗 Código :</strong> {$clase['qr']}</p>";
+            echo "<small>Los estudiantes pueden usar este código para registrar asistencia</small>";
+            echo "</div>";
+        }
 
         echo "</div>";
 
+        // Botones según el rol
+        echo "<div style='margin-top: 15px;'>";
+
+        if ($rol === 'profesor') {
+            // Formulario eliminar
+            echo "<form method='POST' style='display: inline; margin: 5px;' onsubmit='return confirm(\"¿Estás seguro de eliminar esta clase?\")'>";
+            echo "<input type='hidden' name='evento' value='eliminar_clase'>";
+            echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
+            echo "<button type='submit' class='btn btn-danger'>🗑️ Eliminar</button>";
+            echo "</form>";
+
+        } elseif ($rol === 'estudiante') {
+            // Para estudiante: verificar si puede marcar asistencia
+            $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+            $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
+
+            if ($puedeMarcar && $clase['qr']) {
+                echo "<div class='qr-form'>";
+                echo "<h5>📱 Registrar Asistencia con Código</h5>";
+                echo "<form method='POST'>";
+                echo "<input type='hidden' name='evento' value='registrar_asistencia'>";
+                echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
+                echo "<div style='display: flex; gap: 10px; align-items: end; margin: 10px 0;'>";
+                echo "<div style='flex: 1;'>";
+                echo "<label><strong>Código QR:</strong></label>";
+                echo "<input type='text' name='codigo' placeholder='Ingresa código' maxlength='100' required class='form-control'>";
+                echo "</div>";
+                echo "<button type='submit' class='btn btn-success'>✅ Marcar Asistencia</button>";
+                echo "</div>";
+                echo "</form>";
+                echo "</div>";
+
+            } elseif ($miAsistencia && $miAsistencia['tipo'] !== 'ausente') {
+                echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
+                echo "✅ <strong>Asistencia registrada como: {$miAsistencia['tipo']}</strong>";
+                if (isset($miAsistencia['hora_inicio'])) {
+                    echo "<br><small>Hora: {$miAsistencia['hora_inicio']}</small>";
+                }
+                echo "</div>";
+            }
+        }
+
         echo "</div>";
-        echo "</body></html>";
+        echo "</div>";
+    }
+
+    private function renderCSS()
+    {
+        echo "<style>";
+        echo "body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }";
+        echo ".container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }";
+        echo ".header { text-align: center; color: #2c3e50; margin-bottom: 30px; }";
+        echo ".success { color: green; background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
+        echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
+        echo ".grupo-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }";
+        echo ".clases-section { margin: 30px 0; }";
+        echo ".clase-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; transition: all 0.3s ease; }";
+        echo ".clase-card.asistencia-presente { background: #d4edda; border-color: #c3e6cb; border-left: 5px solid #28a745; }";
+        echo ".clase-card.asistencia-ausente { background: #f8d7da; border-color: #f5c6cb; border-left: 5px solid #dc3545; }";
+        echo ".asistencia-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 10px; }";
+        echo ".badge-presente { background: #d4edda; color: #155724; }";
+        echo ".badge-ausente { background: #f8d7da; color: #721c24; }";
+        echo ".qr-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 10px 0; }";
+        echo ".qr-code { background: #fff; border: 2px dashed #007bff; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }";
+        echo ".asistencias-resumen { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }";
+        echo ".form-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6; }";
+        echo ".form-group { margin-bottom: 15px; }";
+        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }";
+        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }";
+        echo ".btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
+        echo ".btn:hover { background: #0056b3; }";
+        echo ".btn-success { background: #28a745; } .btn-success:hover { background: #218838; }";
+        echo ".btn-warning { background: #ffc107; color: #212529; } .btn-warning:hover { background: #e0a800; }";
+        echo ".btn-danger { background: #dc3545; } .btn-danger:hover { background: #c82333; }";
+        echo ".btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }";
+        echo ".no-clases { text-align: center; color: #6c757d; padding: 40px; background: #f8f9fa; border-radius: 8px; }";
+        echo ".access-denied { text-align: center; color: #dc3545; padding: 40px; background: #f8d7da; border-radius: 8px; border: 1px solid #f5c6cb; }";
+        echo ".actions { text-align: center; margin: 30px 0; }";
+        echo "</style>";
     }
 }

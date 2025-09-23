@@ -8,7 +8,8 @@ class Conexion {
     private $username;
     private $password;
 
-    private function __construct() {
+    public function __construct() {
+        
         $this->loadEnvironmentVariables();
         $this->connect();
     }

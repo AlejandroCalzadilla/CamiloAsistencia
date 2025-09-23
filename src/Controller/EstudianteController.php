@@ -1,13 +1,13 @@
 <?php
 class EstudianteController
 {
-    private $model;
-    private $view;
+    public EstudianteModel $model;
+    public EstudianteView $view;
 
-    public function __construct(EstudianteModel $model, EstudianteView $view)
+    public function __construct()
     {
-        $this->model = $model;
-        $this->view = $view;
+        $this->model = new EstudianteModel();
+        $this->view = new EstudianteView();
     }
 
     public function handleRequest()
@@ -32,9 +32,6 @@ class EstudianteController
         }
 
     }
-
-
-
 
     public function crearEstudiante()
     {

@@ -63,7 +63,8 @@ FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
 CREATE TABLE clases (
 id SERIAL PRIMARY KEY,
 dia DATE NOT NULL,
-fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+hora_inicio TIME,
+hora_fin TIME,
 qr VARCHAR(255),
 grupo_id INTEGER NOT NULL,
 FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE 
@@ -82,9 +83,6 @@ FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
 
 CREATE TABLE asistencia (
 id SERIAL PRIMARY KEY,
-fecha DATE NOT NULL,
-hora_inicio TIME,
-hora_fin TIME,
 tipo VARCHAR(20) DEFAULT 'presente',
 estudiante_codigo VARCHAR(20) NOT NULL,
 clases_id INTEGER NOT NULL,
@@ -127,10 +125,10 @@ INSERT INTO horario (dia, hora_inicio, hora_final, grupo_id) VALUES
 ('Jueves', '16:00', '18:00', 2),
 ('Viernes', '08:00', '10:00', 3);
 
-INSERT INTO clases (dia, qr, grupo_id) VALUES 
-('2025-09-15', 'QR123ABC', 1),
-('2025-09-15', 'QR456DEF', 2),
-('2025-09-15', 'QR789GHI', 3);
+INSERT INTO clases (dia, qr, grupo_id, hora_inicio, hora_fin) VALUES 
+('2025-09-15', 'QR123ABC', 1, '08:00', '10:00'),
+('2025-09-15', 'QR456DEF', 2, '10:00', '12:00'),
+('2025-09-15', 'QR789GHI', 3, '08:00', '10:00'  );
 
 INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) VALUES 
 ('EST001', 1, CURRENT_TIMESTAMP),
@@ -140,8 +138,8 @@ INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) VALUES
 ('EST003', 2, CURRENT_TIMESTAMP),
 ('EST003', 3, CURRENT_TIMESTAMP);
 
-INSERT INTO asistencia (fecha, hora_inicio, hora_fin, tipo, estudiante_codigo, clases_id) VALUES 
-('2025-09-15', '08:05', '09:55', 'presente', 'EST001', 1),
-('2025-09-15', '08:15', '09:55', 'tarde', 'EST002', 1),
-('2025-09-15', '14:00', '15:50', 'presente', 'EST001', 2),
-('2025-09-15', '08:00', '09:45', 'presente', 'EST003', 3);
+INSERT INTO asistencia (tipo, estudiante_codigo, clases_id) VALUES 
+( 'presente', 'EST001', 1),
+( 'tarde', 'EST002', 1),
+( 'presente', 'EST001', 2),
+( 'presente', 'EST003', 3);

@@ -4,8 +4,8 @@ class EstudianteView {
     private $message = '';
     private $messageType = '';
 
-    public function __construct(EstudianteModel $model) {
-        $this->estudiantemodel = $model;
+    public function __construct() {
+        $this->estudiantemodel = new EstudianteModel();
     }
 
     public function showSuccessMessage($message) {

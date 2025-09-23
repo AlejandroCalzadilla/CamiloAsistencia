@@ -35,13 +35,10 @@ class AsistenciaModel
                 // Consulta para profesor: obtener asistencias de todas las clases de sus grupos
                 $sql = "SELECT 
                         a.id as asistencia_id,
-                        a.fecha as fecha_asistencia,
-                        a.hora_inicio,
-                        a.hora_fin,
                         a.tipo,
                         c.id as clase_id,
                         c.dia as dia_clase,
-                        c.fecha as fecha_creacion_clase,
+                      
                         c.qr,
                         g.id as grupo_id,
                         g.nombre as grupo_nombre,
@@ -69,7 +66,7 @@ class AsistenciaModel
                     $params[] = $grupo_id;
                 }
 
-                $sql .= " ORDER BY c.fecha DESC, a.fecha DESC, e.apellidos, e.nombres";
+                $sql .= " ORDER BY c.id DESC, a.id DESC, e.apellidos, e.nombres";
 
                 return $this->db->fetchAll($sql, $params);
 
@@ -89,13 +86,10 @@ class AsistenciaModel
 
                 $sql = "SELECT 
                         a.id as asistencia_id,
-                        a.fecha as fecha_asistencia,
-                        a.hora_inicio,
-                        a.hora_fin,
                         a.tipo,
                         c.id as clase_id,
                         c.dia as dia_clase,
-                        c.fecha as fecha_creacion_clase,
+                       
                         c.qr,
                         g.id as grupo_id,
                         g.nombre as grupo_nombre,
@@ -130,7 +124,7 @@ class AsistenciaModel
                     $params[] = $grupo_id;
                 }
 
-                $sql .= " ORDER BY c.fecha DESC, a.fecha DESC";
+              
 
                 return $this->db->fetchAll($sql, $params);
 
@@ -153,118 +147,79 @@ class AsistenciaModel
 
 
 
-    public function marcarPresente($usuario_id, $clase_id, $codigo_verificacion)
+   public function marcarPresente($usuario_id, $clase_id, $codigo_verificacion) 
     {
         try {
-
-            date_default_timezone_set('America/La_Paz'); // Para Bolivia
-            $sqlEstudiante = "SELECT codigo FROM estudiante WHERE usuario_id = ?";
-            $estudiante = $this->db->fetch($sqlEstudiante, [$usuario_id]);
-
+            // Configurar zona horaria
+            date_default_timezone_set('America/La_Paz');
+            
+            // Obtener datos del estudiante
+            $estudiante = $this->obtenerDatosEstudiante($usuario_id);
             if (!$estudiante) {
-                return [
-                    'success' => false,
-                    'mensaje' => 'No se encontró información del estudiante'
-                ];
+                return ['success' => false, 'mensaje' => 'Estudiante no encontrado'];
             }
 
-            $estudiante_codigo = $estudiante['codigo'];
-
-            // 2. Verificar que el código QR sea válido para esta clase
-            $sqlClase = "SELECT c.id, c.qr, c.grupo_id, 
-                        a.hora_inicio, a.hora_fin, a.tipo, a.id as asistencia_id
-                 FROM clases c
-                 INNER JOIN asistencia a ON c.id = a.clases_id
-                 WHERE c.id = ? AND c.qr = ? AND a.estudiante_codigo = ?";
-
-            $resultado = $this->db->fetch($sqlClase, [$clase_id, $codigo_verificacion, $estudiante_codigo]);
-
-            if (!$resultado) {
-                return [
-                    'success' => false,
-                    'mensaje' => 'Código QR inválido o no tienes asistencia registrada para esta clase'
-                ];
+            // Verificar que el QR existe y obtener la clase
+            $sql = "SELECT c.id, c.grupo_id, c.qr, c.dia, c.hora_inicio, c.hora_fin 
+                    FROM clases c 
+                    WHERE c.qr = ?";
+            $clase = $this->db->fetch($sql, [$codigo_verificacion]);
+            
+            if (!$clase) {
+                return ['success' => false, 'mensaje' => 'Código QR inválido'];
             }
 
-            // 3. Verificar si ya marcó asistencia
-            if ($resultado['tipo'] !== 'ausente') {
-                return [
-                    'success' => false,
-                    'mensaje' => 'Ya has marcado tu asistencia para esta clase como: ' . $resultado['tipo']
-                ];
+            // Verificar que el estudiante está inscrito en el grupo
+            $sql = "SELECT 1 FROM inscribe WHERE estudiante_codigo = ? AND grupo_id = ?";
+            $inscrito = $this->db->fetch($sql, [$estudiante['codigo'], $clase['grupo_id']]);
+            
+            if (!$inscrito) {
+                return ['success' => false, 'mensaje' => 'No estás inscrito en este grupo'];
             }
 
-            // 4. Obtener hora actual
+            // Verificar si ya existe el registro de asistencia
+            $sql = "SELECT id, tipo FROM asistencia WHERE clases_id = ? AND estudiante_codigo = ?";
+            $asistencia = $this->db->fetch($sql, [$clase['id'], $estudiante['codigo']]);
+            
+            if (!$asistencia) {
+                return ['success' => false, 'mensaje' => 'No se encontró registro de asistencia para esta clase'];
+            }
+            
+            if ($asistencia['tipo'] === 'presente' || $asistencia['tipo'] === 'retraso') {
+                return ['success' => false, 'mensaje' => 'Ya has marcado asistencia para esta clase'];
+            }
+
+            // Determinar si es presente o retraso basado en la hora
             $hora_actual = date('H:i:s');
-            $hora_inicio_clase = $resultado['hora_inicio'];
-            $hora_fin_clase = $resultado['hora_fin'];
-
-            // 5. Convertir horas a timestamp para comparación
-            $timestamp_actual = strtotime($hora_actual);
-            $timestamp_inicio = strtotime($hora_inicio_clase);
-            $timestamp_fin = strtotime($hora_fin_clase);
-
-            // 6. Calcular límite de retraso (5 minutos después del inicio)
-            $timestamp_limite_retraso = $timestamp_inicio + (5 * 60); // 5 minutos en segundos
-
-            // 7. Determinar el tipo de asistencia
-            $nuevo_tipo = 'ausente'; // Por defecto permanece ausente
-
-            if ($timestamp_actual >= $timestamp_inicio && $timestamp_actual <= $timestamp_fin) {
-                // Está dentro del horario de clase
-                $nuevo_tipo = 'presente';
-            } elseif ($timestamp_actual > $timestamp_inicio && $timestamp_actual <= $timestamp_limite_retraso) {
-                // Llegó tarde pero dentro del margen de 5 minutos
-                $nuevo_tipo = 'retraso';
-            } elseif ($timestamp_actual < $timestamp_inicio) {
-                // Llegó antes de tiempo (se considera presente)
-                $nuevo_tipo = 'presente';
-            }
-            // Si llega más de 5 minutos tarde o después del fin de clase, permanece ausente
-
-            // 8. Solo actualizar si no es ausente
-            if ($nuevo_tipo !== 'ausente') {
-                // Solo actualizar el tipo, no las horas
-                $sqlUpdate = "UPDATE asistencia 
-                             SET tipo = ?
-                             WHERE id = ?";
-
-                $filasAfectadas = $this->db->update($sqlUpdate, [
-                    $nuevo_tipo,
-                    $resultado['asistencia_id']
-                ]);
-
-                if ($filasAfectadas > 0) {
-                    $mensaje_tipo = $nuevo_tipo === 'presente' ? 'presente' : 'presente con retraso';
-                    return [
-                        'success' => true,
-                        'mensaje' => "Asistencia marcada como: $mensaje_tipo",
-                        'tipo' => $nuevo_tipo,
-                        'hora_marcada' => $hora_actual, // Solo para referencia, no se guarda
-                        'estudiante_codigo' => $estudiante_codigo
-                    ];
-                } else {
-                    return [
-                        'success' => false,
-                        'mensaje' => 'Error al actualizar la asistencia'
-                    ];
+            $tipo_asistencia = 'ausente';
+            if ($clase['hora_inicio'] && $hora_actual < $clase['hora_fin']) {
+            $tipo_asistencia = 'presente';
+            }else {
+                $hora_fin_mas_5 = date("H:i:s", strtotime($clase['hora_fin'] . " +5 minutes"));
+                if (($clase['hora_inicio'] && $hora_actual <= $hora_fin_mas_5)) {
+                    // Si llega después de la hora de inicio, es retraso
+                    $tipo_asistencia = 'retraso';
                 }
-            } else {
-                // Llegó muy tarde, no se actualiza
-                $minutos_retraso = round(($timestamp_actual - $timestamp_inicio) / 60);
-                return [
-                    'success' => false,
-                    'mensaje' => "Llegaste demasiado tarde ($minutos_retraso minutos de retraso). Solo se acepta hasta 5 minutos de retraso.",
-                    'tipo' => 'ausente'
-                ];
             }
-
+            // Actualizar asistencia
+            $sql = "UPDATE asistencia SET tipo = ? WHERE clases_id = ? AND estudiante_codigo = ?";
+            $resultado = $this->db->update($sql, [$tipo_asistencia, $clase['id'], $estudiante['codigo']]);
+            if ($resultado > 0) {
+                $mensaje = $tipo_asistencia === 'presente' 
+                    ? "Asistencia registrada correctamente a las $hora_actual"
+                    : "Asistencia registrada como RETRASO a las $hora_actual";
+                    
+                return [
+                    'success' => true, 
+                    'mensaje' => $mensaje
+                ];
+            } else {
+                return ['success' => false, 'mensaje' => 'Error al registrar asistencia'];
+            }
+            
         } catch (Exception $e) {
-            error_log("Error al marcar presente: " . $e->getMessage());
-            return [
-                'success' => false,
-                'mensaje' => 'Error interno del sistema'
-            ];
+            error_log("Error al registrar asistencia: " . $e->getMessage());
+            return ['success' => false, 'mensaje' => 'Error interno del sistema'];
         }
     }
     public function obtenerPorClase($clase_id)
@@ -279,7 +234,12 @@ class AsistenciaModel
         }
     }
 
-    public function crearAsistenciasParaClase($clase_id, $grupo_id, $hora_inicio, $hora_fin)
+    private function obtenerDatosEstudiante($usuarioId) 
+    {
+        $sql = "SELECT codigo, nombres, apellidos FROM estudiante WHERE usuario_id = ?";
+        return $this->db->fetch($sql, [$usuarioId]);
+    }
+    public function crearAsistenciasParaClase($clase_id, $grupo_id)
     {
         try {
             // Obtener todos los estudiantes inscritos en el grupo
@@ -287,9 +247,9 @@ class AsistenciaModel
             $estudiantes = $this->db->fetchAll($sql, [$grupo_id]);
             foreach ($estudiantes as $estudiante) {
                 // Crear registro de asistencia con estado 'ausente' por defecto
-                $sqlInsert = "INSERT INTO asistencia (fecha, hora_inicio, hora_fin, tipo, estudiante_codigo, clases_id) 
-                             VALUES (CURRENT_DATE, ?, ?, 'ausente', ?, ?)";
-                $this->db->query($sqlInsert, [$hora_inicio, $hora_fin, $estudiante['estudiante_codigo'], $clase_id]);
+                $sqlInsert = "INSERT INTO asistencia ( tipo, estudiante_codigo, clases_id) 
+                             VALUES ('ausente', ?, ?)";
+                $this->db->query($sqlInsert, [ $estudiante['estudiante_codigo'], $clase_id]);
             }
 
             return true;
