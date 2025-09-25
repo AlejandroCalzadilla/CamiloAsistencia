@@ -57,8 +57,7 @@ class GrupoController
                
         
                  //rutas
-                 case 'Usuarios':
-                    $this->Usuarios();
+               
                 case 'InscripcionClicked':
                     $this->showInscripcion();
                     break;
@@ -207,11 +206,9 @@ class GrupoController
         }
          $this->view->actualizar();
     }
-    public function Usuarios()
-    {
-        header("Location: usuarios.php");
-    }
+    
 
+    
     public function showInscripcion()
     {
         header('Location: inscripcion.php');

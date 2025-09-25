@@ -41,14 +41,14 @@ class ClaseView
     public function actualizar($grupo_id)
     {
         $data = $this->claseModel->mostrar($grupo_id);
-        $asistenciaData = $this->asistenciaModel->obtener($grupo_id);
-        $this->render($data, $asistenciaData);
+        $asistenciaResponse = $this->asistenciaModel->obtener($grupo_id);
+        $this->render($data, $asistenciaResponse);
     }
 
 
-    public function render($data , $asistenciaData)
+    public function render($data, $asistenciaData)
     {
-     
+
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Clases - Sistema de Asistencia</title>";
         $this->renderCSS();
@@ -166,8 +166,22 @@ class ClaseView
         echo "</div>";
     }
 
-    private function renderClases($data, $asistenciaData)
+    private function renderClases($data, $asistenciaResponse)
     {
+
+       if (is_array($asistenciaResponse)) {
+            if (isset($asistenciaResponse['success'])) {
+                // Es una respuesta con estructura success/mensaje
+                $asistenciaData = $asistenciaResponse['success'] ? ($asistenciaResponse['data'] ?? []) : [];
+            } else {
+                // Es directamente el array de datos
+                $asistenciaData = $asistenciaResponse;
+            }
+        } else {
+            $asistenciaData = [];
+        }
+
+
         echo "<div class='clases-section'>";
 
         if (empty($data['clases'])) {
@@ -283,7 +297,7 @@ class ClaseView
 
             // Mostrar detalles si están activados
             if ($this->mostrarAsistencias && $this->claseIdAsistencias == $clase['id']) {
-                echo "hora_inicio: {}"; // Ejemplo de uso de hora_inicio
+              
                 echo "<div style='margin-top: 15px; background: #f8f9fa; padding: 15px; border-radius: 5px;'>";
                 echo "<h6>Lista de Estudiantes:</h6>";
                 echo "<div style='max-height: 200px; overflow-y: auto;'>";
@@ -317,9 +331,9 @@ class ClaseView
         }
 
         // Mostrar código  para profesores
-        if ($clase['qr'] && $rol === 'profesor') {
+        if ($clase['codigo'] && $rol === 'profesor') {
             echo "<div class='qr-code'>";
-            echo "<p><strong>🔗 Código :</strong> {$clase['qr']}</p>";
+            echo "<p><strong>🔗 Código :</strong> {$clase['codigo']}</p>";
             echo "<small>Los estudiantes pueden usar este código para registrar asistencia</small>";
             echo "</div>";
         }
@@ -342,7 +356,7 @@ class ClaseView
             $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
             $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
 
-            if ($puedeMarcar && $clase['qr']) {
+            if ($puedeMarcar && $clase['codigo']) {
                 echo "<div class='qr-form'>";
                 echo "<h5>📱 Registrar Asistencia con Código</h5>";
                 echo "<form method='POST'>";
@@ -350,7 +364,7 @@ class ClaseView
                 echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
                 echo "<div style='display: flex; gap: 10px; align-items: end; margin: 10px 0;'>";
                 echo "<div style='flex: 1;'>";
-                echo "<label><strong>Código QR:</strong></label>";
+                echo "<label><strong>Código :</strong></label>";
                 echo "<input type='text' name='codigo' placeholder='Ingresa código' maxlength='100' required class='form-control'>";
                 echo "</div>";
                 echo "<button type='submit' class='btn btn-success'>✅ Marcar Asistencia</button>";

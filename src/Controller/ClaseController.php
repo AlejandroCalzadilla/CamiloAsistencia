@@ -31,13 +31,13 @@ class ClaseController
                     $this->eliminarClase($grupo_id);
                     break;    
                 case 'mostrar_form_crear':
-                    $this->mostrarFormularioCrear();
+                    $this->mostrarFormularioCrear($grupo_id);
                     break;
                 case 'cancelar_formulario':
-                    $this->cancelarFormulario();
+                    $this->cancelarFormulario($grupo_id);
                     break;
                 case 'ver_asistencias':
-                    $this->verAsistencias();
+                    $this->verAsistencias($grupo_id);
                     break;
                
                 case 'volver_grupos':
@@ -56,7 +56,6 @@ class ClaseController
     {
         date_default_timezone_set('America/La_Paz');
         session_start();
-        $usuarioData = $_SESSION['usuario_logueado'];
         $dia = $_POST['dia'];
         $hora_inicio = $_POST['hora_inicio'];
         $hora_fin = $_POST['hora_fin'];
@@ -65,9 +64,9 @@ class ClaseController
             return;
         }
         $resultado = $this->model->crearClase($dia, $grupo_id, $hora_inicio, $hora_fin); 
+       
         if ($resultado['success']) {
             $clase_id = $resultado['clase_id'];
-            // Crear asistencias para todos los estudiantes
             $resultadoAsistencias = $this->asistenciaModel->crearAsistenciasParaClase($clase_id, $grupo_id);
             if ($resultadoAsistencias) {
                 $this->view->showSuccessMessage('Clase creada exitosamente. Código  ' . ($resultado['codigo'] ?? 'N/A'));
@@ -85,31 +84,28 @@ class ClaseController
         $usuarioData = $_SESSION['usuario_logueado'];
         $usuario_id = $usuarioData['id'];
         $clase_id = intval($_POST['clase_id']);
-        $codigo_verificacion = $_POST['qr_codigo'];
+        $codigo_verificacion = $_POST['codigo'];
         if (empty(trim($codigo_verificacion))) {
             $this->view->showErrorMessage('Por favor ingresa el código QR');
             return;
         }
-        $resultado = $this->asistenciaModel->marcarPresente($usuario_id, $clase_id, $codigo_verificacion);
-        if ($resultado['success']) {
-            $this->view->showSuccessMessage($resultado['mensaje']);
-        } else {
-            $this->view->showErrorMessage($resultado['mensaje']);
-        }
+         $this->asistenciaModel->marcarPresente($usuario_id, $clase_id, $codigo_verificacion);
         return $this->view->actualizar($grupo_id);
     }
 
-    public function mostrarFormularioCrear()
+    public function mostrarFormularioCrear($grupo_id)
     {
         $this->view->setMostrarFormulario(true);
+        return $this->view->actualizar($grupo_id);
     }
 
-    public function cancelarFormulario()
+    public function cancelarFormulario($grupo_id)
     {
         $this->view->setMostrarFormulario(false);
+        return $this->view->actualizar($grupo_id);
     }
 
-    public function verAsistencias()
+    public function verAsistencias($grupo_id)
     {
         if (!isset($_POST['clase_id'])) {
             $this->view->showErrorMessage('ID de clase no especificado');
@@ -117,16 +113,12 @@ class ClaseController
         }
         $clase_id = intval($_POST['clase_id']);
         $this->view->setMostrarAsistencias(true, $clase_id);
+        return $this->view->actualizar($grupo_id);
     }
 
     public function eliminarClase($grupo_id)
     {
-        session_start();
-        $usuarioData = $_SESSION['usuario_logueado'];
-        if (!$usuarioData || $usuarioData['rol'] !== 'profesor') {
-            $this->view->showErrorMessage('Solo los profesores pueden eliminar clases');
-            return;
-        }
+        
         if (!isset($_POST['clase_id'])) {
             $this->view->showErrorMessage('ID de clase no especificado');
             return;

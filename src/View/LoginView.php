@@ -4,7 +4,7 @@ require_once __DIR__ . '/../View/interfaces/View.php';
 
 class LoginView implements View
 {
-    private $model;
+
     private $message = '';
     private $messageType = '';
 
@@ -39,7 +39,7 @@ class LoginView implements View
      
     public function actualizar(){
 
-        $datos=$this->model->obtenerTodos();
+        $datos=$this->usuarioModel->obtenerTodos();
         $this->render($datos);
     }
 

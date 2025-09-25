@@ -16,6 +16,7 @@ class GrupoView
 
     public function actualizar(){
         $data = $this->model->mostrar();
+      
         $this->render($data);
     }
 

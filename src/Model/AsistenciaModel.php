@@ -21,9 +21,9 @@ class AsistenciaModel
 
 
 
-    public function obtener( $grupo_id)
+    public function obtener($grupo_id)
     {
-  
+
         $usuarioData = $_SESSION['usuario_logueado'];
         if (isset($usuarioData)) {
             $usuarioId = $usuarioData['id'];
@@ -38,8 +38,8 @@ class AsistenciaModel
                         a.tipo,
                         c.id as clase_id,
                         c.dia as dia_clase,
-                      
-                        c.qr,
+
+                        c.codigo,
                         g.id as grupo_id,
                         g.nombre as grupo_nombre,
                         m.nombre as materia_nombre,
@@ -68,7 +68,11 @@ class AsistenciaModel
 
                 $sql .= " ORDER BY c.id DESC, a.id DESC, e.apellidos, e.nombres";
 
-                return $this->db->fetchAll($sql, $params);
+                $resultado = $this->db->fetchAll($sql, $params);
+                return [
+                    'success' => true,
+                    'data' => $resultado
+                ];
 
             } elseif ($rol === 'estudiante') {
                 // Consulta para estudiante: obtener sus propias asistencias
@@ -90,7 +94,7 @@ class AsistenciaModel
                         c.id as clase_id,
                         c.dia as dia_clase,
                        
-                        c.qr,
+                        c.codigo,
                         g.id as grupo_id,
                         g.nombre as grupo_nombre,
                         m.nombre as materia_nombre,
@@ -124,14 +128,19 @@ class AsistenciaModel
                     $params[] = $grupo_id;
                 }
 
-              
 
-                return $this->db->fetchAll($sql, $params);
+
+                $resultado = $this->db->fetchAll($sql, $params);
+                return [
+                    'success' => true,
+                    'data' => $resultado
+                ];
 
             } else {
                 return [
                     'success' => false,
-                    'mensaje' => 'Rol de usuario no válido'
+                    'mensaje' => 'Rol de usuario no válido',
+                    'data' => []
                 ];
             }
 
@@ -147,24 +156,24 @@ class AsistenciaModel
 
 
 
-   public function marcarPresente($usuario_id, $clase_id, $codigo_verificacion) 
+    public function marcarPresente($usuario_id, $clase_id, $codigo_verificacion)
     {
         try {
             // Configurar zona horaria
             date_default_timezone_set('America/La_Paz');
-            
+
             // Obtener datos del estudiante
             $estudiante = $this->obtenerDatosEstudiante($usuario_id);
             if (!$estudiante) {
                 return ['success' => false, 'mensaje' => 'Estudiante no encontrado'];
             }
 
-            // Verificar que el QR existe y obtener la clase
-            $sql = "SELECT c.id, c.grupo_id, c.qr, c.dia, c.hora_inicio, c.hora_fin 
+            // Verificar que el código existe y obtener la clase
+            $sql = "SELECT c.id, c.grupo_id, c.codigo, c.dia, c.hora_inicio, c.hora_fin 
                     FROM clases c 
-                    WHERE c.qr = ?";
+                    WHERE c.codigo = ?";
             $clase = $this->db->fetch($sql, [$codigo_verificacion]);
-            
+
             if (!$clase) {
                 return ['success' => false, 'mensaje' => 'Código QR inválido'];
             }
@@ -172,7 +181,7 @@ class AsistenciaModel
             // Verificar que el estudiante está inscrito en el grupo
             $sql = "SELECT 1 FROM inscribe WHERE estudiante_codigo = ? AND grupo_id = ?";
             $inscrito = $this->db->fetch($sql, [$estudiante['codigo'], $clase['grupo_id']]);
-            
+
             if (!$inscrito) {
                 return ['success' => false, 'mensaje' => 'No estás inscrito en este grupo'];
             }
@@ -180,11 +189,11 @@ class AsistenciaModel
             // Verificar si ya existe el registro de asistencia
             $sql = "SELECT id, tipo FROM asistencia WHERE clases_id = ? AND estudiante_codigo = ?";
             $asistencia = $this->db->fetch($sql, [$clase['id'], $estudiante['codigo']]);
-            
+
             if (!$asistencia) {
                 return ['success' => false, 'mensaje' => 'No se encontró registro de asistencia para esta clase'];
             }
-            
+
             if ($asistencia['tipo'] === 'presente' || $asistencia['tipo'] === 'retraso') {
                 return ['success' => false, 'mensaje' => 'Ya has marcado asistencia para esta clase'];
             }
@@ -193,8 +202,8 @@ class AsistenciaModel
             $hora_actual = date('H:i:s');
             $tipo_asistencia = 'ausente';
             if ($clase['hora_inicio'] && $hora_actual < $clase['hora_fin']) {
-            $tipo_asistencia = 'presente';
-            }else {
+                $tipo_asistencia = 'presente';
+            } else {
                 $hora_fin_mas_5 = date("H:i:s", strtotime($clase['hora_fin'] . " +5 minutes"));
                 if (($clase['hora_inicio'] && $hora_actual <= $hora_fin_mas_5)) {
                     // Si llega después de la hora de inicio, es retraso
@@ -205,18 +214,18 @@ class AsistenciaModel
             $sql = "UPDATE asistencia SET tipo = ? WHERE clases_id = ? AND estudiante_codigo = ?";
             $resultado = $this->db->update($sql, [$tipo_asistencia, $clase['id'], $estudiante['codigo']]);
             if ($resultado > 0) {
-                $mensaje = $tipo_asistencia === 'presente' 
+                $mensaje = $tipo_asistencia === 'presente'
                     ? "Asistencia registrada correctamente a las $hora_actual"
                     : "Asistencia registrada como RETRASO a las $hora_actual";
-                    
+
                 return [
-                    'success' => true, 
+                    'success' => true,
                     'mensaje' => $mensaje
                 ];
             } else {
                 return ['success' => false, 'mensaje' => 'Error al registrar asistencia'];
             }
-            
+
         } catch (Exception $e) {
             error_log("Error al registrar asistencia: " . $e->getMessage());
             return ['success' => false, 'mensaje' => 'Error interno del sistema'];
@@ -234,7 +243,7 @@ class AsistenciaModel
         }
     }
 
-    private function obtenerDatosEstudiante($usuarioId) 
+    private function obtenerDatosEstudiante($usuarioId)
     {
         $sql = "SELECT codigo, nombres, apellidos FROM estudiante WHERE usuario_id = ?";
         return $this->db->fetch($sql, [$usuarioId]);
@@ -249,7 +258,7 @@ class AsistenciaModel
                 // Crear registro de asistencia con estado 'ausente' por defecto
                 $sqlInsert = "INSERT INTO asistencia ( tipo, estudiante_codigo, clases_id) 
                              VALUES ('ausente', ?, ?)";
-                $this->db->query($sqlInsert, [ $estudiante['estudiante_codigo'], $clase_id]);
+                $this->db->query($sqlInsert, [$estudiante['estudiante_codigo'], $clase_id]);
             }
 
             return true;

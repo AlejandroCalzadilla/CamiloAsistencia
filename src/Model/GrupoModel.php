@@ -138,6 +138,8 @@ class GrupoModel
         }
         return $resultado;
     }
+
+    
     public function crear($data)
     {
         $sql = "INSERT INTO grupo (nombre, capacidad_maxima, capacidad_actual, materia_id, profesor_codigo) 

@@ -185,25 +185,4 @@ class Conexion {
             'type' => 'PostgreSQL Local'
         ];
     }
-
-    /**
-     * Obtener información de la base de datos
-     */
-    public function getDatabaseInfo() {
-        try {
-            $version = $this->fetch("SELECT version() as version");
-            $currentDb = $this->fetch("SELECT current_database() as database");
-            $currentUser = $this->fetch("SELECT current_user as user");
-            
-            return [
-                'version' => $version['version'] ?? 'Desconocida',
-                'database' => $currentDb['database'] ?? 'Desconocida',
-                'user' => $currentUser['user'] ?? 'Desconocido',
-                'host' => $this->host,
-                'port' => $this->port
-            ];
-        } catch (Exception $e) {
-            return ['error' => $e->getMessage()];
-        }
-    }
 }

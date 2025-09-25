@@ -50,14 +50,6 @@ FOREIGN KEY (profesor_codigo) REFERENCES profesor(codigo)
 );
 
 
-CREATE TABLE horario (
-id SERIAL PRIMARY KEY,
-dia VARCHAR(20) NOT NULL,
-hora_inicio TIME NOT NULL,
-hora_final TIME NOT NULL,
-grupo_id INTEGER NOT NULL,
-FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
-);
 
 
 CREATE TABLE clases (
@@ -118,12 +110,6 @@ INSERT INTO grupo (nombre, capacidad_maxima, capacidad_actual, materia_id, profe
 ('PROG-B', 25, 0, 2, 'PROF001'),
 ('BD-C', 20, 0, 3, 'PROF001');
 
-INSERT INTO horario (dia, hora_inicio, hora_final, grupo_id) VALUES 
-('Lunes', '08:00', '10:00', 1),
-('Miércoles', '10:00', '12:00', 1),
-('Martes', '14:00', '16:00', 2),
-('Jueves', '16:00', '18:00', 2),
-('Viernes', '08:00', '10:00', 3);
 
 INSERT INTO clases (dia, codigo, grupo_id, hora_inicio, hora_fin) VALUES 
 ('2025-09-15', '123ABC', 1, '08:00', '10:00'),
