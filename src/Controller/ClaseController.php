@@ -17,6 +17,7 @@ class ClaseController
 
     public function handleRequest($grupo_id)
     {
+         
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['evento'])) {
             $evento = $_POST['evento'];
             

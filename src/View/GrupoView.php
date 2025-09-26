@@ -2,7 +2,7 @@
 class GrupoView
 {
     private $grupoModel;
-    private $inscripcionModel;
+    private $asignacionModel;
     private $message = '';
     private $messageType = '';
     private $mostrarFormulario = false;
@@ -12,15 +12,15 @@ class GrupoView
     public function __construct()
     {
         $this->grupoModel = new GrupoModel();
-        $this->inscripcionModel = new InscripcionModel();
+        $this->asignacionModel = new AsignacionModel();
     }
 
 
     public function actualizar()
     {
         $data = $this->grupoModel->mostrar();
-        $inscripciones = $this->inscripcionModel->mostrar();
-        $this->render($data, $inscripciones);
+        $asignaciones = $this->asignacionModel->mostrar();
+        $this->render($data, $asignaciones);
     }
 
 
@@ -237,7 +237,7 @@ class GrupoView
         echo "<div style='margin-top: 30px; border-top: 2px solid #dee2e6; padding-top: 20px;'>";
         echo "<h5>👥 Gestión de Asisgnaciones</h5>";
 
-        // ============ MOSTRAR LISTA DE INSCRITOS (SIN FORMULARIOS) ============
+        // ============ MOSTRAR LISTA DE Asignado (SIN FORMULARIOS) ============
         if (!empty($inscripciones)) {
             echo "<div style='margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 5px;'>";
             echo "<h6>📋 Estudiantes Asignados (" . count($inscripciones) . "):</h6>";
@@ -249,14 +249,14 @@ class GrupoView
                 echo "<small>CI: {$inscripcion['estudiante_ci']} | Código: {$inscripcion['estudiante_codigo']}</small>";
                 echo "</div>";
                 echo "<div>";
-                echo "✅ Inscrito";
+                echo "✅ Asignado";
                 echo "</div>";
                 echo "</div>";
             }
             echo "</div>";
         } else {
             echo "<div style='background: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px;'>";
-            echo "<p>📝 No hay estudiantes inscritos en este grupo.</p>";
+            echo "<p>📝 No hay estudiantes asignados en este grupo.</p>";
             echo "</div>";
         }
 
@@ -264,7 +264,7 @@ class GrupoView
         echo "<div style='background: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 15px;'>";
         echo "<h6>➕ Agregar Estudiante:</h6>";
         echo "<form method='POST'>";
-        echo "<input type='hidden' name='evento' value='agregar_inscripcion'>";
+        echo "<input type='hidden' name='evento' value='agregar_asignacion'>";
         echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
         echo "<div style='display: flex; gap: 10px; align-items: end;'>";
         echo "<div style='flex: 1;'>";
@@ -293,7 +293,7 @@ class GrupoView
 
             foreach ($inscripciones as $inscripcion) {
                 echo "<form method='POST' style='display: inline-block;'>";
-                echo "<input type='hidden' name='evento' value='eliminar_inscripcion'>";
+                echo "<input type='hidden' name='evento' value='eliminar_asignacion'>";
                 echo "<input type='hidden' name='estudiante_codigo' value='{$inscripcion['estudiante_codigo']}'>";
                 echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
                 echo "<button type='submit' class='btn btn-danger' style='padding: 5px 10px; font-size: 0.8em;' onclick='return confirm(\"¿Eliminar inscripción de {$inscripcion['estudiante_nombres']} {$inscripcion['estudiante_apellidos']}?\")'>🗑️ {$inscripcion['estudiante_nombres']}</button>";
@@ -375,7 +375,7 @@ class GrupoView
         if ($rol === 'profesor') {
             echo "<p>No tienes grupos asignados como profesor.</p>";
         } else {
-            echo "<p>No estás inscrito en ningún grupo.</p>";
+            echo "<p>No estás asignado a ningún grupo.</p>";
         }
         echo "</div>";
     }
@@ -386,7 +386,7 @@ class GrupoView
         echo "<script> "
             . "console.log(" . json_encode($grupo) . ");"
             . "</script>";
-        echo "<h3>📚 " . ($grupo['rol'] === 'profesor' ? 'Grupos que Impartes' : 'Grupos Inscritos') . " (" . count($grupo['grupos']) . ")</h3>";
+        echo "<h3>📚 " . ($grupo['rol'] === 'profesor' ? 'Grupos que Impartes' : 'Grupos Asignados') . " (" . count($grupo['grupos']) . ")</h3>";
 
         foreach ($grupo['grupos'] as $grupoItem) {
             echo "<div class='group-card'>";

@@ -7,13 +7,13 @@ class GrupoController
 {
     private GrupoModel $model;
     private GrupoView $view;
-    private InscripcionModel $inscripcionModel;
+    private AsignacionModel $asignacionModel;
 
     public function __construct()
     {
         $this->model = new GrupoModel();
         $this->view = new GrupoView();
-        $this->inscripcionModel = new InscripcionModel();
+        $this->asignacionModel = new AsignacionModel();
     }
     public function handleRequest()
     {
@@ -31,8 +31,8 @@ class GrupoController
                 case 'crear_grupo':
                     $this->crearGrupo();
                     break;
-                case 'agregar_inscripcion':
-                    $this->agregarInscripcion();
+                case 'agregar_asignacion':
+                    $this->agregarAsignacion();
                     break;
                 case 'actualizar_grupo':
                     $this->actualizarGrupo();
@@ -40,8 +40,8 @@ class GrupoController
                 case 'eliminar_grupo':
                     $this->eliminarGrupo();
                     break;
-                case 'eliminar_inscripcion':
-                    $this->eliminarInscripcion();
+                case 'eliminar_asignacion':
+                    $this->eliminarAsignacion();
                     break;
                 case 'mostrar_form_crear':
                     $this->mostrarFormularioCrear();
@@ -57,9 +57,7 @@ class GrupoController
 
                 //rutas
 
-                case 'InscripcionClicked':
-                    $this->showInscripcion();
-                    break;
+                
                 case 'ProfesoresClicked':
                     $this->showProfesores();
                     break;
@@ -142,13 +140,13 @@ class GrupoController
         return $this->view->actualizar();
     }
 
-    public function agregarInscripcion()
+    public function agregarAsignacion()
     {
         $estudiante_codigo = $_POST['estudiante_codigo'];
         $grupo_id = intval($_POST['grupo_id']);
 
 
-        $resultado = $this->inscripcionModel->crear($estudiante_codigo, $grupo_id);
+        $resultado = $this->asignacionModel->crear($estudiante_codigo, $grupo_id);
 
         error_log("DEBUG - Resultado de agregarInscripcion: " . json_encode($resultado));
         if ($resultado['success']) {
@@ -159,13 +157,13 @@ class GrupoController
         return $this->view->actualizar();
     }
 
-    public function eliminarInscripcion()
+    public function eliminarAsignacion()
     {
         $estudiante_codigo = $_POST['estudiante_codigo'];
         $grupo_id = intval($_POST['grupo_id']);
 
 
-        $resultado = $this->inscripcionModel->eliminar($estudiante_codigo, $grupo_id);
+        $resultado = $this->asignacionModel->eliminar($estudiante_codigo, $grupo_id);
 
 
         if ($resultado['success']) {
@@ -210,11 +208,7 @@ class GrupoController
 
 
 
-    public function showInscripcion()
-    {
-        header('Location: inscripcion.php');
-        exit();
-    }
+  
     public function showUsuarios()
     {
         header('Location: usuarios.php');

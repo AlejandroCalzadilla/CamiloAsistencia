@@ -1,6 +1,6 @@
 <?php
 
-class InscripcionModel{
+class AsignacionModel{
 
     private $estudiante_codigo;
     private $grupo_id;
@@ -15,7 +15,7 @@ class InscripcionModel{
     
     public function crear($estudiante_codigo, $grupo_id) {
 
-            if ($this->existeInscripcion($estudiante_codigo, $grupo_id)) {
+            if ($this->existeAsignacion($estudiante_codigo, $grupo_id)) {
                 return [
                     'success' => false,
                     'message' => 'El estudiante ya está inscrito en este grupo'
@@ -38,9 +38,9 @@ class InscripcionModel{
             ];
     }
 
-    // Eliminar una inscripción
+    // Eliminar una asignación
     public function eliminar($estudiante_codigo, $grupo_id) {
-            if (!$this->existeInscripcion($estudiante_codigo, $grupo_id)) {
+            if (!$this->existeAsignacion($estudiante_codigo, $grupo_id)) {
                 return [
                     'success' => false,
                     'message' => 'La inscripción no existe'
@@ -62,7 +62,7 @@ class InscripcionModel{
             }
     }
 
-    // Obtener todas las inscripciones
+    // Obtener todas las asignaciones
     public function mostrar() {
         try {
             $sql = "SELECT 
@@ -92,8 +92,8 @@ class InscripcionModel{
     }
 
 
-    // Verificar si existe una inscripción
-    private function existeInscripcion($estudiante_codigo, $grupo_id) {
+    // Verificar si existe una asignación
+    private function existeAsignacion($estudiante_codigo, $grupo_id) {
         try {
             $sql = "SELECT COUNT(*) as total FROM inscribe 
                     WHERE estudiante_codigo = ? AND grupo_id = ?";
