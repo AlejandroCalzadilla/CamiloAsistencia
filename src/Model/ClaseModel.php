@@ -56,7 +56,7 @@ class ClaseModel {
     }
 
     // Obtener clases de un grupo específico
-   // Obtener clases de un grupo específico
+  
     private function obtenerClasesGrupo($grupo_id) {
         $sql = "SELECT 
                     c.id,

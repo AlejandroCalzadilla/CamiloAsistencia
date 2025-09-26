@@ -86,11 +86,16 @@ class ClaseController
         $clase_id = intval($_POST['clase_id']);
         $codigo_verificacion = $_POST['codigo'];
         if (empty(trim($codigo_verificacion))) {
-            $this->view->showErrorMessage('Por favor ingresa el código QR');
+            $this->view->showErrorMessage('Por favor ingresa el código ');
             return;
         }
-         $this->asistenciaModel->marcarPresente($usuario_id, $clase_id, $codigo_verificacion);
-        return $this->view->actualizar($grupo_id);
+         $resultado=  $this->asistenciaModel->marcarPresente($usuario_id, $clase_id, $codigo_verificacion);
+            if ($resultado['success']) {
+                $this->view->showSuccessMessage($resultado['mensaje']);
+            } else {
+                $this->view->showErrorMessage($resultado['mensaje']);
+            }
+         return $this->view->actualizar($grupo_id);
     }
 
     public function mostrarFormularioCrear($grupo_id)

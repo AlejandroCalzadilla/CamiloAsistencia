@@ -1,7 +1,8 @@
 <?php
 class GrupoView
 {
-    private $model;
+    private $grupoModel;
+    private $inscripcionModel;
     private $message = '';
     private $messageType = '';
     private $mostrarFormulario = false;
@@ -10,15 +11,18 @@ class GrupoView
 
     public function __construct()
     {
-        $this->model = new GrupoModel();
+        $this->grupoModel = new GrupoModel();
+        $this->inscripcionModel = new InscripcionModel();
     }
 
 
-    public function actualizar(){
-        $data = $this->model->mostrar();
-      
-        $this->render($data);
+    public function actualizar()
+    {
+        $data = $this->grupoModel->mostrar();
+        $inscripciones = $this->inscripcionModel->mostrar();
+        $this->render($data, $inscripciones);
     }
+
 
 
 
@@ -40,19 +44,14 @@ class GrupoView
         $this->grupoIdEditar = $grupoId;
     }
 
-    public function render($data)
+
+    public function render($data, $inscripciones)
     {
-        $grupo = $data; 
+        $grupo = $data;
         $profesores = $data['profesores'] ?? [];
         $materias = $data['materias'] ?? [];
         $estudiantes = $data['estudiantes'] ?? [];
         $grupos = $data['grupos'] ?? [];
-        echo "<script>
-        console.log(" . json_encode($grupos) . ");
-        </script>";
-
-
-
 
         echo "<!DOCTYPE html>";
         echo "<html lang='es'><head><title>Grupos - Sistema de Asistencia</title>";
@@ -67,12 +66,15 @@ class GrupoView
         echo "</div>";
         // Mostrar mensajes
         if ($this->message) {
+            echo "<script>";
+            echo "console.log( 'mensaje' , " . json_encode($this->message) . ");";
+            echo "</script>";
             $class = $this->messageType === 'success' ? 'success' : 'error';
             echo "<div class='$class'>{$this->message}</div>";
         }
         echo "<div class='groups-section'>";
         if ($grupo['rol'] === 'admin') {
-            $this->renderAdminSection($profesores, $materias, $estudiantes, $grupos);
+            $this->renderAdminSection($profesores, $materias, $estudiantes, $grupos, $inscripciones);
         } elseif (empty($grupo['grupos'])) {
             $this->renderNoGroups($grupo['rol']);
         } else {
@@ -110,7 +112,7 @@ class GrupoView
         }
     }
 
-    private function renderAdminSection($profesores = [], $materias = [], $estudiantes = [], $grupos = [])
+    private function renderAdminSection($profesores = [], $materias = [], $estudiantes = [], $grupos = [], $inscripciones = [])
     {
         echo "<div class='admin-section'>";
         echo "<h3>👑 Panel de Administrador - Gestión de Grupos</h3>";
@@ -126,7 +128,7 @@ class GrupoView
         }
 
         if ($this->mostrarFormulario) {
-            $this->renderFormularioGrupo($profesores, $materias, $estudiantes);
+            $this->renderFormularioGrupo($profesores, $materias, $estudiantes, $inscripciones);
         }
 
         // Lista de todos los grupos
@@ -140,18 +142,25 @@ class GrupoView
 
 
 
-    private function renderFormularioGrupo($profesores = [], $materias = [], $estudiantes = [])
+    private function renderFormularioGrupo($profesores = [], $materias = [], $estudiantes = [], $inscripciones = [])
     {
         $esEdicion = $this->tipoFormulario === 'editar';
         $titulo = $esEdicion ? 'Editar Grupo' : 'Crear Nuevo Grupo';
 
-
+        echo "<script>";
+        echo "console.log( 'inscripciones' , " . json_encode($inscripciones) . ");";
+        echo "</script>";
         $grupoData = null;
-        $inscripciones = [];
-
+        $inscripcionesporgrupo = [];
         if ($esEdicion && $this->grupoIdEditar) {
-            $grupoData = $this->model->obtenerPorId($this->grupoIdEditar);
-            $inscripciones = $this->model->obtenerInscripcionesGrupo($this->grupoIdEditar);
+            $grupoData = $this->grupoModel->obtenerPorId($this->grupoIdEditar);
+            $inscripcionesporgrupo = array_filter($inscripciones, function ($inscripcion) {
+                return $inscripcion['grupo_id'] == $this->grupoIdEditar;
+            });
+            $inscripcionesporgrupo = array_values($inscripcionesporgrupo);
+            echo "<script>";
+            echo "console.log( 'inscripcionesporid' , " . json_encode($inscripcionesporgrupo) . ");";
+            echo "</script>";
         }
 
         echo "<div class='form-section'>";
@@ -163,7 +172,7 @@ class GrupoView
 
         if ($esEdicion) {
             echo "<input type='hidden' name='id' value='{$this->grupoIdEditar}'>";
-            echo "<input type='hidden' name='capacidad_actual' value='" . count($inscripciones) . "'>";
+            echo "<input type='hidden' name='capacidad_actual' value='" . count($inscripcionesporgrupo) . "'>";
         }
 
         echo "<div class='form-group'>";
@@ -216,7 +225,7 @@ class GrupoView
 
         // ============ GESTIÓN DE INSCRIPCIONES (SOLO PARA EDICIÓN) ============
         if ($esEdicion) {
-            $this->renderGestionInscripcionesSeparadas($inscripciones, $estudiantes);
+            $this->renderGestionInscripcionesSeparadas($inscripcionesporgrupo, $estudiantes);
         }
 
         echo "</div>";
@@ -226,18 +235,18 @@ class GrupoView
     private function renderGestionInscripcionesSeparadas($inscripciones, $estudiantes)
     {
         echo "<div style='margin-top: 30px; border-top: 2px solid #dee2e6; padding-top: 20px;'>";
-        echo "<h5>👥 Gestión de Inscripciones</h5>";
+        echo "<h5>👥 Gestión de Asisgnaciones</h5>";
 
         // ============ MOSTRAR LISTA DE INSCRITOS (SIN FORMULARIOS) ============
         if (!empty($inscripciones)) {
             echo "<div style='margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 5px;'>";
-            echo "<h6>📋 Estudiantes Inscritos (" . count($inscripciones) . "):</h6>";
+            echo "<h6>📋 Estudiantes Asignados (" . count($inscripciones) . "):</h6>";
 
             foreach ($inscripciones as $inscripcion) {
                 echo "<div class='inscripcion-item'>";
                 echo "<div>";
-                echo "<strong>{$inscripcion['nombres']} {$inscripcion['apellidos']}</strong><br>";
-                echo "<small>CI: {$inscripcion['ci']} | Código: {$inscripcion['estudiante_codigo']}</small>";
+                echo "<strong>{$inscripcion['estudiante_nombres']} {$inscripcion['estudiante_apellidos']}</strong><br>";
+                echo "<small>CI: {$inscripcion['estudiante_ci']} | Código: {$inscripcion['estudiante_codigo']}</small>";
                 echo "</div>";
                 echo "<div>";
                 echo "✅ Inscrito";
@@ -287,7 +296,7 @@ class GrupoView
                 echo "<input type='hidden' name='evento' value='eliminar_inscripcion'>";
                 echo "<input type='hidden' name='estudiante_codigo' value='{$inscripcion['estudiante_codigo']}'>";
                 echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
-                echo "<button type='submit' class='btn btn-danger' style='padding: 5px 10px; font-size: 0.8em;' onclick='return confirm(\"¿Eliminar inscripción de {$inscripcion['nombres']} {$inscripcion['apellidos']}?\")'>🗑️ {$inscripcion['nombres']}</button>";
+                echo "<button type='submit' class='btn btn-danger' style='padding: 5px 10px; font-size: 0.8em;' onclick='return confirm(\"¿Eliminar inscripción de {$inscripcion['estudiante_nombres']} {$inscripcion['estudiante_apellidos']}?\")'>🗑️ {$inscripcion['estudiante_nombres']}</button>";
                 echo "</form>";
             }
 
@@ -305,15 +314,17 @@ class GrupoView
         echo "<div style='margin-top: 30px;'>";
         echo "<h4>📚 Todos los Grupos del Sistema</h4>";
 
+
         if (empty($grupos)) {
             echo "<p style='text-align: center; color: #6c757d;'>No hay grupos registrados</p>";
         } else {
             foreach ($grupos as $grupo) {
+
                 echo "<div class='group-card'>";
                 echo "<h4>📖 {$grupo['grupo_nombre']}</h4>";
                 echo "<div class='group-meta'>";
                 echo "<p><strong>Materia:</strong> {$grupo['materia_nombre']}</p>";
-                echo "<p><strong>Profesor:</strong> {$grupo['profesor_nombres']} {$grupo['profesor_apellidos']}</p>";
+                echo "<p><strong>Profesor:</strong> {$grupo['profesor_nombres']} </p>";
                 echo "<p><strong>Capacidad:</strong> {$grupo['capacidad_maxima']} estudiantes</p>";
                 echo "<p><strong>Inscritos:</strong> {$grupo['estudiantes_inscritos']} estudiantes</p>";
                 echo "</div>";
@@ -373,8 +384,8 @@ class GrupoView
     {
 
         echo "<script> "
-        . "console.log(" . json_encode($grupo) . ");"
-        . "</script>";
+            . "console.log(" . json_encode($grupo) . ");"
+            . "</script>";
         echo "<h3>📚 " . ($grupo['rol'] === 'profesor' ? 'Grupos que Impartes' : 'Grupos Inscritos') . " (" . count($grupo['grupos']) . ")</h3>";
 
         foreach ($grupo['grupos'] as $grupoItem) {
@@ -396,9 +407,7 @@ class GrupoView
             echo "<button type='submit' class='btn " . ($grupo['rol'] === 'profesor' ? 'btn-warning' : 'btn-success') . "'>📚 Ver Clases</button>";
             echo "</form>";
 
-            if ($grupo['rol'] === 'estudiante') {
-                echo "<a href='mis-asistencias.php?grupo_id={$grupoItem['id']}' class='btn btn-success'>📊 Mis Asistencias</a>";
-            }
+
             echo "</div>";
             echo "</div>";
         }
@@ -414,43 +423,69 @@ class GrupoView
         $rol = $data['rol'] ?? 'U';
         return strtoupper(substr($rol, 0, 1));
     }
+
     private function renderCSS()
     {
         echo "<style>";
-        echo "body { font-family: Arial, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: #f5f5f5; }";
-        echo ".container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }";
-        echo ".header { text-align: center; color: #2c3e50; margin-bottom: 30px; }";
-        echo ".success { color: green; background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".group-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; }";
-        echo ".group-meta { color: #6c757d; font-size: 0.9em; margin: 5px 0; }";
-        echo ".btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
-        echo ".btn:hover { background: #0056b3; }";
-        echo ".btn-success { background: #28a745; } .btn-success:hover { background: #218838; }";
-        echo ".btn-warning { background: #ffc107; color: #212529; } .btn-warning:hover { background: #e0a800; }";
-        echo ".btn-danger { background: #dc3545; } .btn-danger:hover { background: #c82333; }";
-        echo ".btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }";
-        echo ".form-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6; }";
+        echo "body { font-family: 'Segoe UI', Arial, sans-serif; background: white; margin: 0; padding: 20px; color: #333; }";
+        echo ".container { max-width: 1200px; margin: 0 auto; background: white; border: 1px solid #ddd; border-radius: 8px; }";
+        echo ".header { text-align: center; color: #000; margin-bottom: 30px; background: white; border-bottom: 2px solid #000; padding: 25px; }";
+        echo ".success { color: #000; background: #f8f9fa; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0; }";
+        echo ".error { color: #000; background: #f8f9fa; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0; }";
+        echo ".group-card { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 20px; margin: 15px 0; }";
+        echo ".group-meta { color: #666; font-size: 0.9em; margin: 5px 0; }";
+        echo ".btn { background: #000; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
+        echo ".btn:hover { background: #333; }";
+        echo ".btn-success { background: #000; } .btn-success:hover { background: #333; }";
+        echo ".btn-warning { background: white; color: #000; border: 1px solid #000; } .btn-warning:hover { background: #f8f9fa; }";
+        echo ".btn-danger { background: #000; color: white; } .btn-danger:hover { background: #333; }";
+        echo ".btn-secondary { background: white; color: #000; border: 1px solid #000; } .btn-secondary:hover { background: #f8f9fa; }";
+        echo ".form-section { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #ddd; }";
         echo ".form-group { margin-bottom: 15px; }";
-        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }";
-        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }";
-        echo ".inscripcion-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: white; border: 1px solid #dee2e6; border-radius: 4px; }";
+        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #000; }";
+        echo ".form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: white; color: #000; }";
+        echo ".form-control:focus { outline: none; border-color: #000; }";
+        echo ".inscripcion-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin: 5px 0; background: #f8f9fa; border: 1px solid #ddd; border-radius: 4px; }";
         echo ".user-dropdown { position: fixed; top: 20px; left: 20px; z-index: 1000; }";
-        echo ".user-avatar { width: 50px; height: 50px; border-radius: 50%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; }";
+        echo ".user-avatar { width: 50px; height: 50px; border-radius: 50%; background: #000; border: 3px solid white; box-shadow: 0 2px 10px rgba(0,0,0,0.3); cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 18px; }";
         echo ".dropdown-content { position: absolute; top: 60px; left: 0; background: white; min-width: 280px; box-shadow: 0 8px 16px rgba(0,0,0,0.2); border-radius: 8px; display: none; border: 1px solid #ddd; }";
         echo ".dropdown-content.show { display: block; }";
-        echo ".dropdown-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #dee2e6; }";
-        echo ".dropdown-item { display: block; padding: 10px 15px; text-decoration: none; color: #495057; }";
+        echo ".dropdown-header { background: #f8f9fa; padding: 15px; border-bottom: 1px solid #ddd; }";
+        echo ".dropdown-item { display: block; padding: 10px 15px; text-decoration: none; color: #000; }";
+        echo ".dropdown-item:hover { background: #f8f9fa; }";
         echo ".role-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }";
-        echo ".role-admin { background: #f8d7da; color: #721c24; }";
-        echo ".role-profesor { background: #d4edda; color: #155724; }";
-        echo ".role-estudiante { background: #cce7ff; color: #004085; }";
+        echo ".role-admin { background: #f8f9fa; color: #000; border: 1px solid #ddd; }";
+        echo ".role-profesor { background: #f8f9fa; color: #000; border: 1px solid #ddd; }";
+        echo ".role-estudiante { background: #f8f9fa; color: #000; border: 1px solid #ddd; }";
+        echo ".admin-section { background: white; }";
+        echo ".groups-section { background: white; padding: 20px; }";
+
+        // Estilos responsive
+        echo "@media (max-width: 768px) {";
+        echo "  body { padding: 10px; }";
+        echo "  .container { margin: 0; border-radius: 6px; }";
+        echo "  .header { padding: 15px; }";
+        echo "  .form-section { padding: 15px; }";
+        echo "  .group-card { padding: 15px; }";
+        echo "  .btn { padding: 6px 12px; font-size: 0.8em; }";
+        echo "  .user-dropdown { top: 10px; left: 10px; }";
+        echo "  .user-avatar { width: 40px; height: 40px; font-size: 16px; }";
+        echo "}";
+
         echo "</style>";
         echo "<script>";
         echo "function toggleUserDropdown() {";
         echo "  var dropdown = document.getElementById('userDropdown');";
         echo "  dropdown.classList.toggle('show');";
         echo "}";
+        echo "// Cerrar dropdown al hacer clic fuera";
+        echo "document.addEventListener('click', function(event) {";
+        echo "  var dropdown = document.getElementById('userDropdown');";
+        echo "  var avatar = document.querySelector('.user-avatar');";
+        echo "  if (!avatar.contains(event.target) && !dropdown.contains(event.target)) {";
+        echo "    dropdown.classList.remove('show');";
+        echo "  }";
+        echo "});";
         echo "</script>";
     }
 }

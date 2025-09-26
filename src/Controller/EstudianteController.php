@@ -26,6 +26,9 @@ class EstudianteController
                 default:
                     $this->view->showErrorMessage("Evento no soportado");
                     break;
+                case 'volver_grupos':
+                    $this->volverGrupos();
+                    return;     
             }
         } else {
             $this->view->actualizar();
@@ -101,5 +104,11 @@ class EstudianteController
             $this->view->showErrorMessage("Código de estudiante requerido para eliminar");
         }
         return $this->view->actualizar();
+    }
+
+    public function volverGrupos()
+    {
+        header('Location: grupo.php');
+        exit();
     }
 }

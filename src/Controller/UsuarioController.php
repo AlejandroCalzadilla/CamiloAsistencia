@@ -39,6 +39,9 @@ class UsuarioController
                     $this->view->showMessage("Evento no soportado");
                     $this->view->actualizar();
                     break;
+                case 'volver_grupos':
+                    $this->volverGrupos();
+                    return;     
             }
         } else {
             $this->view->actualizar();
@@ -98,6 +101,13 @@ class UsuarioController
             $this->view->showErrorMessage($resultado['mensaje']);
         }
         return $this->view->actualizar();
+    }
+
+
+      public function volverGrupos()
+    {
+        header('Location: grupo.php');
+        exit();
     }
 
 

@@ -175,7 +175,7 @@ class AsistenciaModel
             $clase = $this->db->fetch($sql, [$codigo_verificacion]);
 
             if (!$clase) {
-                return ['success' => false, 'mensaje' => 'Código QR inválido'];
+                return ['success' => false, 'mensaje' => 'Código  inválido'];
             }
 
             // Verificar que el estudiante está inscrito en el grupo
@@ -204,7 +204,9 @@ class AsistenciaModel
             if ($clase['hora_inicio'] && $hora_actual < $clase['hora_fin']) {
                 $tipo_asistencia = 'presente';
             } else {
+               
                 $hora_fin_mas_5 = date("H:i:s", strtotime($clase['hora_fin'] . " +5 minutes"));
+               
                 if (($clase['hora_inicio'] && $hora_actual <= $hora_fin_mas_5)) {
                     // Si llega después de la hora de inicio, es retraso
                     $tipo_asistencia = 'retraso';
@@ -231,17 +233,7 @@ class AsistenciaModel
             return ['success' => false, 'mensaje' => 'Error interno del sistema'];
         }
     }
-    public function obtenerPorClase($clase_id)
-    {
-        try {
-            $sql = "SELECT * FROM asistencia WHERE clases_id = ?";
-            $asistencias = $this->db->fetchAll($sql, [$clase_id]);
-            return $asistencias;
-        } catch (Exception $e) {
-            error_log("Error al obtener asistencias: " . $e->getMessage());
-            return [];
-        }
-    }
+   
 
     private function obtenerDatosEstudiante($usuarioId)
     {

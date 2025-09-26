@@ -11,54 +11,35 @@ class InscripcionModel{
         $this->db = new Conexion(); 
     }
 
-    // Setters
     
-    // Crear una nueva inscripción
+    
     public function crear($estudiante_codigo, $grupo_id) {
-        try {
-            // Verificar si ya existe la inscripción
+
             if ($this->existeInscripcion($estudiante_codigo, $grupo_id)) {
                 return [
                     'success' => false,
                     'message' => 'El estudiante ya está inscrito en este grupo'
                 ];
             }
-
-            // Verificar capacidad del grupo
             if (!$this->verificarCapacidad($grupo_id)) {
                 return [
                     'success' => false,
                     'message' => 'El grupo ha alcanzado su capacidad máxima'
                 ];
             }
-
-            // Insertar inscripción
+       
             $sql = "INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) 
                     VALUES (?, ?, CURRENT_TIMESTAMP)";
-            
             $this->db->query($sql, [$estudiante_codigo, $grupo_id]);
-            
-            // Actualizar capacidad actual del grupo
             $this->actualizarCapacidadGrupo($grupo_id);
-            
             return [
                 'success' => true,
                 'message' => 'Inscripción realizada exitosamente'
             ];
-
-        } catch (Exception $e) {
-            error_log("Error en InscripcionModel::crear: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error al realizar la inscripción: ' . $e->getMessage()
-            ];
-        }
     }
 
     // Eliminar una inscripción
     public function eliminar($estudiante_codigo, $grupo_id) {
-        try {
-            // Verificar si existe la inscripción
             if (!$this->existeInscripcion($estudiante_codigo, $grupo_id)) {
                 return [
                     'success' => false,
@@ -68,9 +49,7 @@ class InscripcionModel{
             $sql = "DELETE FROM inscribe WHERE estudiante_codigo = ? AND grupo_id = ?";
             $filasAfectadas = $this->db->delete($sql, [$estudiante_codigo, $grupo_id]);
             if ($filasAfectadas > 0) {
-                // Actualizar capacidad actual del grupo
-                $this->actualizarCapacidadGrupo($grupo_id);
-                
+                $this->actualizarCapacidadGrupo($grupo_id);  
                 return [
                     'success' => true,
                     'message' => 'Inscripción eliminada exitosamente'
@@ -81,18 +60,10 @@ class InscripcionModel{
                     'message' => 'No se pudo eliminar la inscripción'
                 ];
             }
-
-        } catch (Exception $e) {
-            error_log("Error en InscripcionModel::eliminar: " . $e->getMessage());
-            return [
-                'success' => false,
-                'message' => 'Error al eliminar la inscripción: ' . $e->getMessage()
-            ];
-        }
     }
 
     // Obtener todas las inscripciones
-    public function obtenerTodas() {
+    public function mostrar() {
         try {
             $sql = "SELECT 
                         i.estudiante_codigo,
@@ -120,82 +91,6 @@ class InscripcionModel{
         }
     }
 
-    // Obtener inscripciones por grupo_id
-    public function obtenerPorGrupoId($grupo_id) {
-        try {
-            $sql = "SELECT 
-                        i.estudiante_codigo,
-                        i.grupo_id,
-                        i.fecha_inscripcion,
-                        e.nombres as estudiante_nombres,
-                        e.apellidos as estudiante_apellidos,
-                        e.ci as estudiante_ci,
-                        e.genero as estudiante_genero,
-                        e.estado as estudiante_estado
-                    FROM inscribe i
-                    INNER JOIN estudiante e ON i.estudiante_codigo = e.codigo
-                    WHERE i.grupo_id = ?
-                    ORDER BY e.apellidos, e.nombres";
-            
-            return $this->db->fetchAll($sql, [$grupo_id]);
-
-        } catch (Exception $e) {
-            error_log("Error en InscripcionModel::obtenerPorGrupoId: " . $e->getMessage());
-            return [];
-        }
-    }
-
-
-    public function obtenerInscripcionesGrupo($grupo_id)
-    {
-        try {
-            $sql = "SELECT 
-                        i.estudiante_codigo,
-                        i.fecha_inscripcion,
-                        e.nombres,
-                        e.apellidos,
-                        e.ci,
-                        e.estado
-                    FROM inscribe i
-                    INNER JOIN estudiante e ON i.estudiante_codigo = e.codigo
-                    WHERE i.grupo_id = ?
-                    ORDER BY e.apellidos, e.nombres";
-            return $this->db->fetchAll($sql, [$grupo_id]);
-        } catch (Exception $e) {
-            error_log("Error en GrupoModel::obtenerInscripcionesGrupo: " . $e->getMessage());
-            return [];
-        }
-    }
-
-    // Obtener inscripciones por estudiante_codigo
-    public function obtenerPorEstudiante($estudiante_codigo) {
-        try {
-            $sql = "SELECT 
-                        i.estudiante_codigo,
-                        i.grupo_id,
-                        i.fecha_inscripcion,
-                        g.nombre as grupo_nombre,
-                        g.capacidad_maxima,
-                        g.capacidad_actual,
-                        m.nombre as materia_nombre,
-                        p.nombres as profesor_nombres,
-                        p.apellidos as profesor_apellidos
-                    FROM inscribe i
-                    INNER JOIN grupo g ON i.grupo_id = g.id
-                    INNER JOIN materia m ON g.materia_id = m.id
-                    INNER JOIN profesor p ON g.profesor_codigo = p.codigo
-                    WHERE i.estudiante_codigo = ?
-                    ORDER BY g.nombre";
-            
-            return $this->db->fetchAll($sql, [$estudiante_codigo]);
-
-        } catch (Exception $e) {
-            error_log("Error en InscripcionModel::obtenerPorEstudiante: " . $e->getMessage());
-            return [];
-        }
-    }
-
-    
 
     // Verificar si existe una inscripción
     private function existeInscripcion($estudiante_codigo, $grupo_id) {
@@ -238,45 +133,11 @@ class InscripcionModel{
 
     // Actualizar la capacidad actual del grupo
     private function actualizarCapacidadGrupo($grupo_id) {
-        try {
             $sql = "UPDATE grupo 
                     SET capacidad_actual = (
                         SELECT COUNT(*) FROM inscribe WHERE grupo_id = ?
                     ) 
                     WHERE id = ?";
-            
             $this->db->update($sql, [$grupo_id, $grupo_id]);
-
-        } catch (Exception $e) {
-            error_log("Error en InscripcionModel::actualizarCapacidadGrupo: " . $e->getMessage());
-        }
-    }
-
-
-    // Validar datos de inscripción
-    public function validar($estudiante_codigo, $grupo_id) {
-        $errores = [];
-
-        if (empty($estudiante_codigo)) {
-            $errores[] = 'El código del estudiante es obligatorio';
-        }
-
-        if (empty($grupo_id)) {
-            $errores[] = 'El ID del grupo es obligatorio';
-        }
-
-        // Verificar si el estudiante existe
-        if (!empty($estudiante_codigo) && !$this->existeEstudiante($estudiante_codigo)) {
-            $errores[] = 'El estudiante no existe';
-        }
-
-        // Verificar si el grupo existe
-        if (!empty($grupo_id) && !$this->existeGrupo($grupo_id)) {
-            $errores[] = 'El grupo no existe';
-        }
-
-        return $errores;
-    }
-
-   
+    }   
 }

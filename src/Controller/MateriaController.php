@@ -28,6 +28,9 @@ class MateriaController
                         $this->eliminarMateria($_POST['id']);
                     }
                     break;
+                case 'volver_grupos':
+                    $this->volverGrupos();
+                    return; 
             }
         } else {
             $this->view->actualizar();
@@ -62,10 +65,17 @@ class MateriaController
         if (!$resultado['success']) {
             $this->view->showMessage($resultado['mensaje']);
             return $this->view->actualizar();
-        } else {    
+        } else {
             $this->view->showMessage('Materia eliminada');
             return $this->view->actualizar();
         }
+    }
+
+
+    public function volverGrupos()
+    {
+        header('Location: grupo.php');
+        exit();
     }
 
 

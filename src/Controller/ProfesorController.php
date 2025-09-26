@@ -25,10 +25,14 @@ class ProfesorController
                 case 'eliminar':
                     $this->eliminar();
                     break;
+                case 'volver_grupos':
+                    $this->volverGrupos();
+                    return; 
                 default:
                     $message = 'Evento no soportado';
                     $messageType = 'error';
                     break;
+                    
             }
         } else {
             $this->view->actualizar();
@@ -84,4 +88,11 @@ class ProfesorController
         }
         return $this->view->actualizar();
     }
+
+      public function volverGrupos()
+    {
+        header('Location: grupo.php');
+        exit();
+    }
+
 }

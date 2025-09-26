@@ -351,36 +351,43 @@ class ClaseView
             echo "<button type='submit' class='btn btn-danger'>🗑️ Eliminar</button>";
             echo "</form>";
 
-        } elseif ($rol === 'estudiante') {
-            // Para estudiante: verificar si puede marcar asistencia
-            $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
-            $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
+        } 
+        elseif ($rol === 'estudiante') {
+        // Para estudiante: verificar si puede marcar asistencia
+        $miAsistencia = $miAsistenciaPorClase[$clase['id']] ?? null;
+        
+        // Solo puede marcar si no tiene asistencia O si está marcado como ausente
+        $puedeMarcar = !$miAsistencia || $miAsistencia['tipo'] === 'ausente';
 
-            if ($puedeMarcar && $clase['codigo']) {
-                echo "<div class='qr-form'>";
-                echo "<h5>📱 Registrar Asistencia con Código</h5>";
-                echo "<form method='POST'>";
-                echo "<input type='hidden' name='evento' value='registrar_asistencia'>";
-                echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
-                echo "<div style='display: flex; gap: 10px; align-items: end; margin: 10px 0;'>";
-                echo "<div style='flex: 1;'>";
-                echo "<label><strong>Código :</strong></label>";
-                echo "<input type='text' name='codigo' placeholder='Ingresa código' maxlength='100' required class='form-control'>";
-                echo "</div>";
-                echo "<button type='submit' class='btn btn-success'>✅ Marcar Asistencia</button>";
-                echo "</div>";
-                echo "</form>";
-                echo "</div>";
+        if ($puedeMarcar && $clase['codigo']) {
+            echo "<div class='qr-form'>";
+            echo "<h5>📱 Registrar Asistencia con Código</h5>";
+            echo "<form method='POST'>";
+            echo "<input type='hidden' name='evento' value='registrar_asistencia'>";
+            echo "<input type='hidden' name='clase_id' value='{$clase['id']}'>";
+            echo "<div style='display: flex; gap: 10px; align-items: end; margin: 10px 0;'>";
+            echo "<div style='flex: 1;'>";
+            echo "<label><strong>Código :</strong></label>";
+            echo "<input type='text' name='codigo' placeholder='Ingresa código' maxlength='100' required class='form-control'>";
+            echo "</div>";
+            echo "<button type='submit' class='btn btn-success'>✅ Marcar Asistencia</button>";
+            echo "</div>";
+            echo "</form>";
+            echo "</div>";
 
-            } elseif ($miAsistencia && $miAsistencia['tipo'] !== 'ausente') {
-                echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
-                echo "✅ <strong>Asistencia registrada como: {$miAsistencia['tipo']}</strong>";
-                if (isset($miAsistencia['hora_inicio'])) {
-                    echo "<br><small>Hora: {$miAsistencia['hora_inicio']}</small>";
-                }
-                echo "</div>";
+        } elseif ($miAsistencia && ($miAsistencia['tipo'] === 'presente' || $miAsistencia['tipo'] === 'retraso')) {
+            // Mostrar mensaje para presente o retraso
+            $tipoTexto = $miAsistencia['tipo'] === 'presente' ? 'presente' : 'retraso';
+            $icono = $miAsistencia['tipo'] === 'presente' ? '✅' : '⏰';
+            
+            echo "<div style='background: #d4edda; padding: 10px; border-radius: 5px; margin: 10px 0; color: #155724;'>";
+            echo "$icono <strong>Asistencia registrada como: $tipoTexto</strong>";
+            if (isset($miAsistencia['hora_inicio'])) {
+                echo "<br><small>Hora: {$miAsistencia['hora_inicio']}</small>";
             }
+            echo "</div>";
         }
+    }
 
         echo "</div>";
         echo "</div>";

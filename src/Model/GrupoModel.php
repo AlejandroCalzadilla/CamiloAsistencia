@@ -139,7 +139,6 @@ class GrupoModel
         return $resultado;
     }
 
-    
     public function crear($data)
     {
         $sql = "INSERT INTO grupo (nombre, capacidad_maxima, capacidad_actual, materia_id, profesor_codigo) 
@@ -272,52 +271,5 @@ class GrupoModel
         }
     }
 
-    // Método para obtener las inscripciones de un grupo específico
-    public function obtenerInscripcionesGrupo($grupo_id)
-    {
-        try {
-            $sql = "SELECT 
-                        i.estudiante_codigo,
-                        i.fecha_inscripcion,
-                        e.nombres,
-                        e.apellidos,
-                        e.ci,
-                        e.estado
-                    FROM inscribe i
-                    INNER JOIN estudiante e ON i.estudiante_codigo = e.codigo
-                    WHERE i.grupo_id = ?
-                    ORDER BY e.apellidos, e.nombres";
-            return $this->db->fetchAll($sql, [$grupo_id]);
-        } catch (Exception $e) {
-            error_log("Error en GrupoModel::obtenerInscripcionesGrupo: " . $e->getMessage());
-            return [];
-        }
-    }
 
-    public function actualizarCapacidadActual($grupo_id)
-    {
-        $sql = "UPDATE grupo SET capacidad_actual = (
-                        SELECT COUNT(*) FROM inscribe WHERE grupo_id = ?
-                    ) WHERE id = ?";
-        return $this->db->update($sql, [$grupo_id, $grupo_id]);
-
-    }
-
-    // Método para validar datos
-    public function validar($data)
-    {
-        $errores = [];
-        if (empty($data['nombre']))
-            $errores[] = 'El nombre del grupo es obligatorio';
-        if (empty($data['materia_id']))
-            $errores[] = 'La materia es obligatoria';
-
-        if (empty($data['profesor_codigo']))
-            $errores[] = 'El profesor es obligatorio';
-
-        if (isset($data['capacidad_maxima']) && $data['capacidad_maxima'] < 1)
-            $errores[] = 'La capacidad máxima debe ser mayor a 0';
-
-        return $errores;
-    }
 }

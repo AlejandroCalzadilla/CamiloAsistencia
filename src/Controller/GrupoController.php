@@ -19,8 +19,7 @@ class GrupoController
     {
         // Procesar solicitudes POST
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['evento'])) {
-            error_log("DEBUG - Evento recibido: " . $_POST['evento']);
-            echo "<script>console.log('Evento recibido: " . $_POST['evento'] . "');</script>";
+
 
             $evento = $_POST['evento'];
 
@@ -34,7 +33,7 @@ class GrupoController
                     break;
                 case 'agregar_inscripcion':
                     $this->agregarInscripcion();
-                    break;    
+                    break;
                 case 'actualizar_grupo':
                     $this->actualizarGrupo();
                     break;
@@ -53,11 +52,11 @@ class GrupoController
                 case 'cancelar_formulario':
                     $this->cancelarFormulario();
                     break;
-               
-               
-        
-                 //rutas
-               
+
+
+
+                //rutas
+
                 case 'InscripcionClicked':
                     $this->showInscripcion();
                     break;
@@ -77,11 +76,10 @@ class GrupoController
                     $this->view->showErrorMessage("Evento no soportado");
                     break;
             }
+        } else {
+            $this->view->actualizar();
         }
-        else {
-             $this->view->actualizar();
-        }
-        
+
     }
 
 
@@ -109,9 +107,6 @@ class GrupoController
 
     public function actualizarGrupo()
     {
-        if (!isset($_POST['id']) || !isset($_POST['nombre']) || !isset($_POST['materia_id']) || !isset($_POST['profesor_codigo'])) {
-            $this->view->showErrorMessage('Datos incompletos para actualizar el grupo');
-        }
         $id = intval($_POST['id']);
         $data = [
             'nombre' => $_POST['nombre'],
@@ -120,7 +115,11 @@ class GrupoController
             'materia_id' => $_POST['materia_id'],
             'profesor_codigo' => $_POST['profesor_codigo']
         ];
+
+
         $resultado = $this->model->actualizar($id, $data);
+
+
         if ($resultado['success']) {
             $this->view->showSuccessMessage($resultado['message']);
         } else {
@@ -131,11 +130,10 @@ class GrupoController
 
     public function eliminarGrupo()
     {
-        if (!isset($_POST['id'])) {
-            $this->view->showErrorMessage('ID del grupo no especificado');
-        }
+
         $id = intval($_POST['id']);
         $resultado = $this->model->eliminar($id);
+
         if ($resultado['success']) {
             $this->view->showSuccessMessage($resultado['message']);
         } else {
@@ -146,34 +144,35 @@ class GrupoController
 
     public function agregarInscripcion()
     {
-        if (!isset($_POST['estudiante_codigo']) || !isset($_POST['grupo_id'])) {
-            $this->view->showErrorMessage('Datos incompletos para agregar inscripción');
-            return;
-        }
         $estudiante_codigo = $_POST['estudiante_codigo'];
         $grupo_id = intval($_POST['grupo_id']);
+
+
         $resultado = $this->inscripcionModel->crear($estudiante_codigo, $grupo_id);
+
+        error_log("DEBUG - Resultado de agregarInscripcion: " . json_encode($resultado));
         if ($resultado['success']) {
-            $this->view->showSuccessMessage($resultado['mensaje']);
+            $this->view->showSuccessMessage($resultado['message']);
         } else {
-            $this->view->showErrorMessage($resultado['mensaje']);
+            $this->view->showErrorMessage($resultado['message']);
         }
         return $this->view->actualizar();
     }
 
     public function eliminarInscripcion()
     {
-        if (!isset($_POST['estudiante_codigo']) || !isset($_POST['grupo_id'])) {
-            $this->view->showErrorMessage('Datos incompletos para eliminar inscripción');
-        }
         $estudiante_codigo = $_POST['estudiante_codigo'];
         $grupo_id = intval($_POST['grupo_id']);
+
+
         $resultado = $this->inscripcionModel->eliminar($estudiante_codigo, $grupo_id);
-            if ($resultado['success']) {
-                $this->view->showSuccessMessage($resultado['mensaje']);
-            } else {
-                $this->view->showErrorMessage($resultado['mensaje']);
-            }
+
+
+        if ($resultado['success']) {
+            $this->view->showSuccessMessage($resultado['mensaje']);
+        } else {
+            $this->view->showErrorMessage($resultado['mensaje']);
+        }
         return $this->view->actualizar();
     }
 
@@ -187,12 +186,13 @@ class GrupoController
     {
         $grupo_id = intval($_POST['grupo_id']);
         $this->view->setMostrarFormulario(true, 'editar', $grupo_id);
-        return $this->view->actualizar();   
+        return $this->view->actualizar();
     }
- 
+
     public function cancelarFormulario()
     {
         $this->view->setMostrarFormulario(false);
+        return $this->view->actualizar();
     }
 
     public function verClases()
@@ -203,12 +203,13 @@ class GrupoController
             exit();
         } else {
             $this->view->showErrorMessage("No se especificó el grupo");
+            $this->view->actualizar();
         }
-         $this->view->actualizar();
-    }
-    
 
-    
+    }
+
+
+
     public function showInscripcion()
     {
         header('Location: inscripcion.php');
