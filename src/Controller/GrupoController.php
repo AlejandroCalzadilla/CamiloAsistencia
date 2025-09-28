@@ -34,6 +34,9 @@ class GrupoController
                 case 'agregar_asignacion':
                     $this->agregarAsignacion();
                     break;
+                case 'cargar_asignaciones_masivas':
+                    $this->cargarAsignacionesMasivas();
+                    break;
                 case 'actualizar_grupo':
                     $this->actualizarGrupo();
                     break;
@@ -167,12 +170,30 @@ class GrupoController
 
 
         if ($resultado['success']) {
-            $this->view->showSuccessMessage($resultado['mensaje']);
+            $this->view->showSuccessMessage($resultado['message']);
         } else {
-            $this->view->showErrorMessage($resultado['mensaje']);
+            $this->view->showErrorMessage($resultado['message']);
         }
         return $this->view->actualizar();
     }
+
+    public function cargarAsignacionesMasivas()
+    {
+        $grupo_id = intval($_POST['grupo_id']);
+        
+        // Delegar toda la lógica al modelo
+        $resultado = $this->asignacionModel->procesarCargaMasiva($_FILES['archivo_excel'] ?? null, $grupo_id);
+
+        if ($resultado['success']) {
+            $this->view->showSuccessMessage($resultado['message']);
+        } else {
+            $this->view->showErrorMessage($resultado['message']);
+        }
+
+        return $this->view->actualizar();
+    }
+
+
 
     public function mostrarFormularioCrear()
     {

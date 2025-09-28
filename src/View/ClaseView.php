@@ -396,35 +396,47 @@ class ClaseView
     private function renderCSS()
     {
         echo "<style>";
-        echo "body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: #f5f5f5; }";
-        echo ".container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }";
-        echo ".header { text-align: center; color: #2c3e50; margin-bottom: 30px; }";
-        echo ".success { color: green; background: #e8f5e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".error { color: red; background: #ffe8e8; padding: 10px; border-radius: 5px; margin: 10px 0; }";
-        echo ".grupo-info { background: #e3f2fd; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #2196f3; }";
+        echo "body { font-family: 'Segoe UI', Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; background: white; color: #333; }";
+        echo ".container { background: white; padding: 30px; border-radius: 8px; border: 1px solid #ddd; }";
+        echo ".header { text-align: center; color: #000; margin-bottom: 30px; border-bottom: 2px solid #000; padding-bottom: 20px; }";
+        echo ".success { color: #000; background: #f8f9fa; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0; }";
+        echo ".error { color: #000; background: #f8f9fa; padding: 12px; border: 1px solid #ddd; border-radius: 4px; margin: 10px 0; }";
+        echo ".grupo-info { background: #f8f9fa; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #ddd; }";
         echo ".clases-section { margin: 30px 0; }";
-        echo ".clase-card { background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 8px; padding: 20px; margin: 15px 0; transition: all 0.3s ease; }";
-        echo ".clase-card.asistencia-presente { background: #d4edda; border-color: #c3e6cb; border-left: 5px solid #28a745; }";
-        echo ".clase-card.asistencia-ausente { background: #f8d7da; border-color: #f5c6cb; border-left: 5px solid #dc3545; }";
-        echo ".asistencia-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 10px; }";
-        echo ".badge-presente { background: #d4edda; color: #155724; }";
-        echo ".badge-ausente { background: #f8d7da; color: #721c24; }";
-        echo ".qr-form { background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 8px; padding: 15px; margin: 10px 0; }";
-        echo ".qr-code { background: #fff; border: 2px dashed #007bff; padding: 10px; border-radius: 8px; text-align: center; margin: 10px 0; }";
-        echo ".asistencias-resumen { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; }";
-        echo ".form-section { background: #f8f9fa; padding: 20px; border-radius: 8px; margin: 20px 0; border: 1px solid #dee2e6; }";
+        echo ".clase-card { background: white; border: 1px solid #ddd; border-radius: 6px; padding: 20px; margin: 15px 0; }";
+        echo ".clase-card.asistencia-presente { background: #f8f9fa; border: 1px solid #000; border-left: 3px solid #000; }";
+        echo ".clase-card.asistencia-ausente { background: #f8f9fa; border: 1px solid #ddd; }";
+        echo ".asistencia-badge { display: inline-block; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; margin-left: 10px; border: 1px solid #ddd; }";
+        echo ".badge-presente { background: #f8f9fa; color: #000; }";
+        echo ".badge-ausente { background: #f8f9fa; color: #000; }";
+        echo ".qr-form { background: #f8f9fa; border: 1px solid #ddd; border-radius: 6px; padding: 15px; margin: 10px 0; }";
+        echo ".qr-code { background: white; border: 2px dashed #000; padding: 10px; border-radius: 6px; text-align: center; margin: 10px 0; }";
+        echo ".asistencias-resumen { background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 10px 0; border: 1px solid #ddd; }";
+        echo ".form-section { background: white; padding: 20px; border-radius: 6px; margin: 20px 0; border: 1px solid #ddd; }";
         echo ".form-group { margin-bottom: 15px; }";
-        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #495057; }";
-        echo ".form-control { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; }";
-        echo ".btn { background: #007bff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
-        echo ".btn:hover { background: #0056b3; }";
-        echo ".btn-success { background: #28a745; } .btn-success:hover { background: #218838; }";
-        echo ".btn-warning { background: #ffc107; color: #212529; } .btn-warning:hover { background: #e0a800; }";
-        echo ".btn-danger { background: #dc3545; } .btn-danger:hover { background: #c82333; }";
-        echo ".btn-secondary { background: #6c757d; } .btn-secondary:hover { background: #5a6268; }";
-        echo ".no-clases { text-align: center; color: #6c757d; padding: 40px; background: #f8f9fa; border-radius: 8px; }";
-        echo ".access-denied { text-align: center; color: #dc3545; padding: 40px; background: #f8d7da; border-radius: 8px; border: 1px solid #f5c6cb; }";
+        echo ".form-group label { display: block; margin-bottom: 5px; font-weight: 600; color: #000; }";
+        echo ".form-control { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px; background: white; color: #000; }";
+        echo ".form-control:focus { outline: none; border-color: #000; }";
+        echo ".btn { background: #000; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; text-decoration: none; display: inline-block; font-size: 0.9em; }";
+        echo ".btn:hover { background: #333; }";
+        echo ".btn-success { background: #000; } .btn-success:hover { background: #333; }";
+        echo ".btn-warning { background: white; color: #000; border: 1px solid #000; } .btn-warning:hover { background: #f8f9fa; }";
+        echo ".btn-danger { background: #000; color: white; } .btn-danger:hover { background: #333; }";
+        echo ".btn-secondary { background: white; color: #000; border: 1px solid #000; } .btn-secondary:hover { background: #f8f9fa; }";
+        echo ".no-clases { text-align: center; color: #666; padding: 40px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; }";
+        echo ".access-denied { text-align: center; color: #000; padding: 40px; background: #f8f9fa; border-radius: 6px; border: 1px solid #ddd; }";
         echo ".actions { text-align: center; margin: 30px 0; }";
+        echo ".clase-meta p { margin: 5px 0; color: #333; }";
+        
+        // Responsive
+        echo "@media (max-width: 768px) {";
+        echo "  body { padding: 10px; }";
+        echo "  .container { padding: 20px; }";
+        echo "  .header { padding-bottom: 15px; }";
+        echo "  .clase-card { padding: 15px; }";
+        echo "  .btn { padding: 6px 12px; font-size: 0.8em; }";
+        echo "}";
+        
         echo "</style>";
     }
 }

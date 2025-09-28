@@ -258,9 +258,9 @@ class GrupoView
             echo "</div>";
         }
 
-        // ============ FORMULARIO PARA AGREGAR ESTUDIANTE ============
+        // ============ FORMULARIO PARA AGREGAR ESTUDIANTE INDIVIDUAL ============
         echo "<div style='background: #e8f5e8; padding: 15px; border-radius: 5px; margin-bottom: 15px;'>";
-        echo "<h6>➕ Agregar Estudiante:</h6>";
+        echo "<h6>➕ Agregar Estudiante Individual:</h6>";
         echo "<form method='POST'>";
         echo "<input type='hidden' name='evento' value='agregar_asignacion'>";
         echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
@@ -280,6 +280,26 @@ class GrupoView
         echo "</div>";
         echo "<button type='submit' class='btn btn-success'>➕ Agregar</button>";
         echo "</div>";
+        echo "</form>";
+        echo "</div>";
+
+        // ============ FORMULARIO PARA CARGA MASIVA DESDE EXCEL ============
+        echo "<div style='background: #e8f4f8; padding: 15px; border-radius: 5px; margin-bottom: 15px;'>";
+        echo "<h6>📊 Carga Masiva desde Excel:</h6>";
+        echo "<form method='POST' enctype='multipart/form-data'>";
+        echo "<input type='hidden' name='evento' value='cargar_asignaciones_masivas'>";
+        echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
+        echo "<div style='margin-bottom: 10px;'>";
+        echo "<label style='font-size: 0.9em; margin-bottom: 5px; display: block;'>Selecciona archivo Excel (.xlsx, .xls, .csv):</label>";
+        echo "<input type='file' name='archivo_excel' accept='.xlsx,.xls,.csv' required class='form-control'>";
+        echo "</div>";
+        echo "<div style='background: #fff3cd; padding: 10px; border-radius: 4px; margin-bottom: 10px; font-size: 0.85em;'>";
+        echo "<strong>📋 Formato del archivo:</strong><br>";
+        echo "• El archivo debe tener una columna con los códigos de estudiantes<br>";
+        echo "• Puede ser la primera columna (A) o tener encabezado 'codigo' o 'estudiante_codigo'<br>";
+        echo "• Formatos aceptados: Excel (.xlsx, .xls) o CSV (.csv)";
+        echo "</div>";
+        echo "<button type='submit' class='btn btn-success'>📤 Cargar Asignaciones</button>";
         echo "</form>";
         echo "</div>";
 
