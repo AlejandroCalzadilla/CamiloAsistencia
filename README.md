@@ -71,7 +71,7 @@ sudo -u postgres createdb asistenciadb
 docker run --name postgres-local \
   -e POSTGRES_DB=asistenciadb \
   -e POSTGRES_USER=postgres \
-  -e POSTGRES_PASSWORD=ale12345678 \
+  -e POSTGRES_PASSWORD=********* \
   -p 5432:5432 -d postgres:15
 ```
 
@@ -79,16 +79,19 @@ docker run --name postgres-local \
 
 Crea un archivo `.env` en la raíz del proyecto:
 
+
+contraseña= contraseña del postgre
+
 ```env
 # Configuración de Base de Datos PostgreSQL
-DATABASE_URL=postgresql://postgres:ale12345678@localhost:5432/asistenciadb
+DATABASE_URL=postgresql://postgres:contraseña@localhost:5432/asistenciadb
 
 # Configuración individual (alternativa)
 DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=asistenciadb
 DB_USER=postgres
-DB_PASSWORD=ale12345678
+DB_PASSWORD=contraseña
 
 # Sin pooler para base local
 POOL_MODE=none
@@ -113,6 +116,7 @@ APP_TIMEZONE=America/La_Paz
 ## 🔧 Test de Conexión
 
 El archivo `test-conexion.php` permite:
+
 
 - ✅ **Verificar conexión** a PostgreSQL
 - 📋 **Listar tablas** existentes y conteo de registros
