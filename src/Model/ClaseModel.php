@@ -84,11 +84,11 @@ class ClaseModel {
                     m.nombre as materia_nombre,
                     p.nombres as profesor_nombres,
                     p.apellidos as profesor_apellidos,
-                    COUNT(i.estudiante_codigo) as estudiantes_inscritos
+                    COUNT(i.estudiante_codigo) as estudiantes_asignados
                 FROM grupo g
                 INNER JOIN materia m ON g.materia_id = m.id
                 INNER JOIN profesor p ON g.profesor_codigo = p.codigo
-                LEFT JOIN inscribe i ON g.id = i.grupo_id
+                LEFT JOIN asignacion i ON g.id = i.grupo_id
                 WHERE g.id = ?
                 GROUP BY g.id, g.nombre, g.capacidad_maxima, m.nombre, p.nombres, p.apellidos";
         

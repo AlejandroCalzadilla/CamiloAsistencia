@@ -148,7 +148,7 @@ class GrupoController
 
         $resultado = $this->asignacionModel->crear($estudiante_codigo, $grupo_id);
 
-        error_log("DEBUG - Resultado de agregarInscripcion: " . json_encode($resultado));
+        error_log("DEBUG - Resultado de agregarAsignacion: " . json_encode($resultado));
         if ($resultado['success']) {
             $this->view->showSuccessMessage($resultado['message']);
         } else {

@@ -201,10 +201,10 @@ class EstudianteModel
         if ($asistencias && $asistencias['count'] > 0) {
             $referencias[] = "Asistencias ({$asistencias['count']})";
         }
-        $sqlInscripciones = "SELECT COUNT(*) as count FROM inscribe WHERE estudiante_codigo = ?";
-        $inscripciones = $this->db->fetch($sqlInscripciones, [$codigo]);
-        if ($inscripciones && $inscripciones['count'] > 0) {
-            $referencias[] = "Inscripciones ({$inscripciones['count']})";
+        $sqlAsignaciones = "SELECT COUNT(*) as count FROM asignacion WHERE estudiante_codigo = ?";
+        $asignaciones = $this->db->fetch($sqlAsignaciones, [$codigo]);
+        if ($asignaciones && $asignaciones['count'] > 0) {
+            $referencias[] = "Asignaciones ({$asignaciones['count']})";
         }
         return $referencias;
     }

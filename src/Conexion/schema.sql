@@ -63,10 +63,10 @@ FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
 );
 
 
-CREATE TABLE inscribe (
+CREATE TABLE asignacion (
 estudiante_codigo VARCHAR(20) NOT NULL,
 grupo_id INTEGER NOT NULL,
-fecha_inscripcion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+fecha_asignacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 PRIMARY KEY (estudiante_codigo, grupo_id),
 FOREIGN KEY (estudiante_codigo) REFERENCES estudiante(codigo) ON DELETE CASCADE ,
 FOREIGN KEY (grupo_id) REFERENCES grupo(id) ON DELETE CASCADE
@@ -116,7 +116,7 @@ INSERT INTO clases (dia, codigo, grupo_id, hora_inicio, hora_fin) VALUES
 ('2025-09-15', '456DEF', 2, '10:00', '12:00'),
 ('2025-09-15', '789GHI', 3, '08:00', '10:00'  );
 
-INSERT INTO inscribe (estudiante_codigo, grupo_id, fecha_inscripcion) VALUES 
+INSERT INTO asignacion (estudiante_codigo, grupo_id, fecha_asignacion) VALUES 
 ('EST001', 1, CURRENT_TIMESTAMP),
 ('EST001', 2, CURRENT_TIMESTAMP),
 ('EST002', 1, CURRENT_TIMESTAMP),

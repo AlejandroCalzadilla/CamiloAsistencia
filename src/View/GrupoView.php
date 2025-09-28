@@ -45,7 +45,7 @@ class GrupoView
     }
 
 
-    public function render($data, $inscripciones)
+    public function render($data, $asignaciones)
     {
         $grupo = $data;
         $profesores = $data['profesores'] ?? [];
@@ -74,7 +74,7 @@ class GrupoView
         }
         echo "<div class='groups-section'>";
         if ($grupo['rol'] === 'admin') {
-            $this->renderAdminSection($profesores, $materias, $estudiantes, $grupos, $inscripciones);
+            $this->renderAdminSection($profesores, $materias, $estudiantes, $grupos, $asignaciones);
         } elseif (empty($grupo['grupos'])) {
             $this->renderNoGroups($grupo['rol']);
         } else {
@@ -112,7 +112,7 @@ class GrupoView
         }
     }
 
-    private function renderAdminSection($profesores = [], $materias = [], $estudiantes = [], $grupos = [], $inscripciones = [])
+    private function renderAdminSection($profesores = [], $materias = [], $estudiantes = [], $grupos = [], $asignaciones = [])
     {
         echo "<div class='admin-section'>";
         echo "<h3>👑 Panel de Administrador - Gestión de Grupos</h3>";
@@ -128,7 +128,7 @@ class GrupoView
         }
 
         if ($this->mostrarFormulario) {
-            $this->renderFormularioGrupo($profesores, $materias, $estudiantes, $inscripciones);
+            $this->renderFormularioGrupo($profesores, $materias, $estudiantes, $asignaciones);
         }
 
         // Lista de todos los grupos
@@ -142,25 +142,23 @@ class GrupoView
 
 
 
-    private function renderFormularioGrupo($profesores = [], $materias = [], $estudiantes = [], $inscripciones = [])
+    private function renderFormularioGrupo($profesores = [], $materias = [], $estudiantes = [], $asignaciones = [])
     {
         $esEdicion = $this->tipoFormulario === 'editar';
         $titulo = $esEdicion ? 'Editar Grupo' : 'Crear Nuevo Grupo';
 
         echo "<script>";
-        echo "console.log( 'inscripciones' , " . json_encode($inscripciones) . ");";
+        echo "console.log( 'asignaciones' , " . json_encode($asignaciones) . ");";
         echo "</script>";
         $grupoData = null;
-        $inscripcionesporgrupo = [];
+        $asignacionesporgrupo = [];
         if ($esEdicion && $this->grupoIdEditar) {
             $grupoData = $this->grupoModel->obtenerPorId($this->grupoIdEditar);
-            $inscripcionesporgrupo = array_filter($inscripciones, function ($inscripcion) {
-                return $inscripcion['grupo_id'] == $this->grupoIdEditar;
+            $asignacionesporgrupo = array_filter($asignaciones, function ($asignacion) {
+                return $asignacion['grupo_id'] == $this->grupoIdEditar;
             });
-            $inscripcionesporgrupo = array_values($inscripcionesporgrupo);
-            echo "<script>";
-            echo "console.log( 'inscripcionesporid' , " . json_encode($inscripcionesporgrupo) . ");";
-            echo "</script>";
+            $asignacionesporgrupo = array_values($asignacionesporgrupo);
+           
         }
 
         echo "<div class='form-section'>";
@@ -172,7 +170,7 @@ class GrupoView
 
         if ($esEdicion) {
             echo "<input type='hidden' name='id' value='{$this->grupoIdEditar}'>";
-            echo "<input type='hidden' name='capacidad_actual' value='" . count($inscripcionesporgrupo) . "'>";
+            echo "<input type='hidden' name='capacidad_actual' value='" . count($asignacionesporgrupo) . "'>";
         }
 
         echo "<div class='form-group'>";
@@ -223,30 +221,30 @@ class GrupoView
         echo "</form>";
         echo "</div>";
 
-        // ============ GESTIÓN DE INSCRIPCIONES (SOLO PARA EDICIÓN) ============
+        // ============ GESTIÓN DE ASIGNACIONES (SOLO PARA EDICIÓN) ============
         if ($esEdicion) {
-            $this->renderGestionInscripcionesSeparadas($inscripcionesporgrupo, $estudiantes);
+            $this->renderGestionAsignacionesSeparadas($asignacionesporgrupo, $estudiantes);
         }
 
         echo "</div>";
     }
 
 
-    private function renderGestionInscripcionesSeparadas($inscripciones, $estudiantes)
+    private function renderGestionAsignacionesSeparadas($asignaciones, $estudiantes)
     {
         echo "<div style='margin-top: 30px; border-top: 2px solid #dee2e6; padding-top: 20px;'>";
         echo "<h5>👥 Gestión de Asisgnaciones</h5>";
 
         // ============ MOSTRAR LISTA DE Asignado (SIN FORMULARIOS) ============
-        if (!empty($inscripciones)) {
+        if (!empty($asignaciones)) {
             echo "<div style='margin-bottom: 20px; background: #f8f9fa; padding: 15px; border-radius: 5px;'>";
-            echo "<h6>📋 Estudiantes Asignados (" . count($inscripciones) . "):</h6>";
+            echo "<h6>📋 Estudiantes Asignados (" . count($asignaciones) . "):</h6>";
 
-            foreach ($inscripciones as $inscripcion) {
+            foreach ($asignaciones as $asignacion) {
                 echo "<div class='inscripcion-item'>";
                 echo "<div>";
-                echo "<strong>{$inscripcion['estudiante_nombres']} {$inscripcion['estudiante_apellidos']}</strong><br>";
-                echo "<small>CI: {$inscripcion['estudiante_ci']} | Código: {$inscripcion['estudiante_codigo']}</small>";
+                echo "<strong>{$asignacion['estudiante_nombres']} {$asignacion['estudiante_apellidos']}</strong><br>";
+                echo "<small>CI: {$asignacion['estudiante_ci']} | Código: {$asignacion['estudiante_codigo']}</small>";
                 echo "</div>";
                 echo "<div>";
                 echo "✅ Asignado";
@@ -271,9 +269,9 @@ class GrupoView
         echo "<select name='estudiante_codigo' required class='form-control'>";
         echo "<option value=''>Selecciona un estudiante</option>";
 
-        $codigosInscritos = array_column($inscripciones, 'estudiante_codigo');
+        $codigosAsignados = array_column($asignaciones, 'estudiante_codigo');
         foreach ($estudiantes as $estudiante) {
-            if (!in_array($estudiante['codigo'], $codigosInscritos)) {
+            if (!in_array($estudiante['codigo'], $codigosAsignados)) {
                 echo "<option value='{$estudiante['codigo']}'>{$estudiante['nombres']} {$estudiante['apellidos']} (CI: {$estudiante['ci']})</option>";
             }
         }
@@ -286,17 +284,17 @@ class GrupoView
         echo "</div>";
 
         // ============ FORMULARIOS PARA ELIMINAR ESTUDIANTES ============
-        if (!empty($inscripciones)) {
+        if (!empty($asignaciones)) {
             echo "<div style='background: #ffe8e8; padding: 15px; border-radius: 5px;'>";
             echo "<h6>🗑️ Eliminar Estudiantes:</h6>";
             echo "<div style='display: flex; flex-wrap: wrap; gap: 10px;'>";
 
-            foreach ($inscripciones as $inscripcion) {
+            foreach ($asignaciones as $asignacion) {
                 echo "<form method='POST' style='display: inline-block;'>";
                 echo "<input type='hidden' name='evento' value='eliminar_asignacion'>";
-                echo "<input type='hidden' name='estudiante_codigo' value='{$inscripcion['estudiante_codigo']}'>";
+                echo "<input type='hidden' name='estudiante_codigo' value='{$asignacion['estudiante_codigo']}'>";
                 echo "<input type='hidden' name='grupo_id' value='{$this->grupoIdEditar}'>";
-                echo "<button type='submit' class='btn btn-danger' style='padding: 5px 10px; font-size: 0.8em;' onclick='return confirm(\"¿Eliminar inscripción de {$inscripcion['estudiante_nombres']} {$inscripcion['estudiante_apellidos']}?\")'>🗑️ {$inscripcion['estudiante_nombres']}</button>";
+                echo "<button type='submit' class='btn btn-danger' style='padding: 5px 10px; font-size: 0.8em;' onclick='return confirm(\"¿Eliminar asignación de {$asignacion['estudiante_nombres']} {$asignacion['estudiante_apellidos']}?\")'>🗑️ {$asignacion['estudiante_nombres']}</button>";
                 echo "</form>";
             }
 
@@ -326,7 +324,7 @@ class GrupoView
                 echo "<p><strong>Materia:</strong> {$grupo['materia_nombre']}</p>";
                 echo "<p><strong>Profesor:</strong> {$grupo['profesor_nombres']} </p>";
                 echo "<p><strong>Capacidad:</strong> {$grupo['capacidad_maxima']} estudiantes</p>";
-                echo "<p><strong>Inscritos:</strong> {$grupo['estudiantes_inscritos']} estudiantes</p>";
+                echo "<p><strong>Asignados:</strong> {$grupo['estudiantes_asignados']} estudiantes</p>";
                 echo "</div>";
                 echo "<div style='margin-top: 15px;'>";
                 // Botón Editar
@@ -394,7 +392,7 @@ class GrupoView
             echo "<div class='group-meta'>";
             echo "<p><strong>Materia:</strong> {$grupoItem['materia_nombre']}</p>";
             echo "<p><strong>Capacidad:</strong> {$grupoItem['capacidad_maxima']} estudiantes</p>";
-            echo "<p><strong>Inscritos:</strong> {$grupoItem['estudiantes_inscritos']} estudiantes</p>";
+            echo "<p><strong>Asignados:</strong> {$grupoItem['estudiantes_asignados']} estudiantes</p>";
             if ($grupo['rol'] === 'estudiante' && isset($grupoItem['profesor_nombres'])) {
                 echo "<p><strong>Profesor:</strong> {$grupoItem['profesor_nombres']} {$grupoItem['profesor_apellidos']}</p>";
             }

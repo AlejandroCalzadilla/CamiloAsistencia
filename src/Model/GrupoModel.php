@@ -41,7 +41,7 @@ class GrupoModel
             'materias' => [],
             'estudiantes' => [],
             'todos_grupos' => [],
-            'inscripciones' => []
+            'asignaciones' => []
         ];
 
         // 1. PROFESORES (siempre necesarios para formularios)
@@ -52,7 +52,7 @@ class GrupoModel
         $sqlMaterias = "SELECT id, nombre FROM materia ORDER BY nombre";
         $resultado['materias'] = $this->db->fetchAll($sqlMaterias);
 
-        // 3. ESTUDIANTES (siempre necesarios para admin e inscripciones)
+        // 3. ESTUDIANTES (siempre necesarios para admin e asignaciones)
         $sqlEstudiantes = "SELECT codigo, nombres, apellidos, ci, genero, estado, usuario_id FROM estudiante ORDER BY apellidos, nombres";
         $resultado['estudiantes'] = $this->db->fetchAll($sqlEstudiantes);
 
@@ -65,11 +65,11 @@ class GrupoModel
                 g.profesor_codigo,  -- ← ESTE CAMPO FALTABA
                 m.nombre as materia_nombre,
                 p.nombres as profesor_nombres,
-                COUNT(i.estudiante_codigo) as estudiantes_inscritos
+                COUNT(i.estudiante_codigo) as estudiantes_asignados
             FROM grupo g
             INNER JOIN materia m ON g.materia_id = m.id
             INNER JOIN profesor p ON g.profesor_codigo = p.codigo
-            LEFT JOIN inscribe i ON g.id = i.grupo_id
+            LEFT JOIN asignacion i ON g.id = i.grupo_id
             GROUP BY g.id, g.nombre, g.capacidad_maxima, g.capacidad_actual, g.materia_id,
                      m.nombre, p.nombres, g.profesor_codigo  
             ORDER BY g.nombre";
@@ -77,19 +77,19 @@ class GrupoModel
 
         $resultado['todos_grupos'] = $todosLosGrupos;
 
-        $sqlInscripciones = "SELECT 
+        $sqlAsignaciones = "SELECT 
                 i.grupo_id,
                 i.estudiante_codigo,
-                i.fecha_inscripcion,
+                i.fecha_asignacion,
                 e.nombres as estudiante_nombres,
                 e.apellidos as estudiante_apellidos,
                 e.ci as estudiante_ci,
                 e.estado as estudiante_estado
-            FROM inscribe i
+            FROM asignacion i
             INNER JOIN estudiante e ON i.estudiante_codigo = e.codigo
             ORDER BY i.grupo_id, e.apellidos, e.nombres";
 
-        $resultado['inscripciones'] = $this->db->fetchAll($sqlInscripciones);
+        $resultado['asignaciones'] = $this->db->fetchAll($sqlAsignaciones);
 
 
         if ($rol === 'admin') {
@@ -124,12 +124,12 @@ class GrupoModel
                 $resultado = array_merge($resultado, $datosEstudiante);
                 $gruposEstudiante = [];
                 foreach ($todosLosGrupos as $grupo) {
-                    // Verificar si el estudiante está inscrito en este grupo
-                    $inscrito = array_filter($resultado['inscripciones'], function ($inscripcion) use ($grupo, $datosEstudiante) {
-                        return $inscripcion['grupo_id'] == $grupo['id'] &&
-                            $inscripcion['estudiante_codigo'] === $datosEstudiante['codigo'];
+                    // Verificar si el estudiante está asignado a este grupo
+                    $asignado = array_filter($resultado['asignaciones'], function ($asignacion) use ($grupo, $datosEstudiante) {
+                        return $asignacion['grupo_id'] == $grupo['id'] &&
+                            $asignacion['estudiante_codigo'] === $datosEstudiante['codigo'];
                     });
-                    if (!empty($inscrito)) {
+                    if (!empty($asignado)) {
                         $gruposEstudiante[] = $grupo;
                     }
                 }
@@ -212,14 +212,14 @@ class GrupoModel
     public function eliminar($id)
     {
         try {
-            // Verificar si hay inscripciones en el grupo
-            $sqlCheck = "SELECT COUNT(*) as total FROM inscribe WHERE grupo_id = ?";
-            $inscripciones = $this->db->fetch($sqlCheck, [$id]);
+            // Verificar si hay asignaciones en el grupo
+            $sqlCheck = "SELECT COUNT(*) as total FROM asignacion WHERE grupo_id = ?";
+            $asignaciones = $this->db->fetch($sqlCheck, [$id]);
 
-            if ($inscripciones['total'] > 0) {
+            if ($asignaciones['total'] > 0) {
                 return [
                     'success' => false,
-                    'message' => 'No se puede eliminar el grupo porque tiene estudiantes inscritos'
+                    'message' => 'No se puede eliminar el grupo porque tiene estudiantes asignados'
                 ];
             }
             $sql = "DELETE FROM grupo WHERE id = ?";

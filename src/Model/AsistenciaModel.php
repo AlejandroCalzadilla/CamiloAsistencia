@@ -178,11 +178,11 @@ class AsistenciaModel
                 return ['success' => false, 'mensaje' => 'Código  inválido'];
             }
 
-            // Verificar que el estudiante está inscrito en el grupo
-            $sql = "SELECT 1 FROM inscribe WHERE estudiante_codigo = ? AND grupo_id = ?";
-            $inscrito = $this->db->fetch($sql, [$estudiante['codigo'], $clase['grupo_id']]);
+            // Verificar que el estudiante está asignado en el grupo
+            $sql = "SELECT 1 FROM asignacion WHERE estudiante_codigo = ? AND grupo_id = ?";
+            $asignado = $this->db->fetch($sql, [$estudiante['codigo'], $clase['grupo_id']]);
 
-            if (!$inscrito) {
+            if (!$asignado) {
                 return ['success' => false, 'mensaje' => 'No estás inscrito en este grupo'];
             }
 
@@ -243,8 +243,8 @@ class AsistenciaModel
     public function crearAsistenciasParaClase($clase_id, $grupo_id)
     {
         try {
-            // Obtener todos los estudiantes inscritos en el grupo
-            $sql = "SELECT estudiante_codigo FROM inscribe WHERE grupo_id = ?";
+            // Obtener todos los estudiantes asignados en el grupo
+            $sql = "SELECT estudiante_codigo FROM asignacion WHERE grupo_id = ?";
             $estudiantes = $this->db->fetchAll($sql, [$grupo_id]);
             foreach ($estudiantes as $estudiante) {
                 // Crear registro de asistencia con estado 'ausente' por defecto
